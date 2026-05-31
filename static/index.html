@@ -5,14 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Coleção de Quadrinhos</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    body { font-family: 'Poppins', sans-serif; background: #f8fafc; }
     .tab-active { border-bottom: 2px solid #4f46e5; color: #4f46e5; font-weight: 600; }
     .card-hover:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
     .badge-hq { background:#dbeafe; color:#1d4ed8; }
     .badge-manga { background:#fce7f3; color:#9d174d; }
     .badge-livro { background:#d1fae5; color:#065f46; }
     .badge-outro { background:#f3f4f6; color:#374151; }
-    body { background: #f8fafc; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -24,25 +26,27 @@
       <h1 class="text-xl font-bold">📚 Coleção de Quadrinhos</h1>
       <p id="header-stats" class="text-indigo-200 text-sm mt-0.5"></p>
     </div>
-    <button onclick="abrirModal()" class="bg-white text-indigo-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-50 transition">
-      + Novo
-    </button>
+    <div class="flex gap-2">
+      <a href="/api/exportar" class="bg-white bg-opacity-20 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-30 transition">
+        ⬇ Excel
+      </a>
+      <button onclick="abrirModalAdd()" class="bg-white text-indigo-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-50 transition">
+        + Novo
+      </button>
+    </div>
   </div>
 </header>
 
 <!-- Tabs -->
 <div class="bg-white border-b shadow-sm">
   <div class="max-w-6xl mx-auto px-4 flex gap-6">
-    <button onclick="setTab('lista')" id="tab-lista" class="py-3 text-sm tab-active" >Minha Coleção</button>
-    <button onclick="setTab('stats')" id="tab-stats" class="py-3 text-sm text-gray-500 hover:text-gray-700">Estatísticas</button>
-    <button onclick="setTab('importar')" id="tab-importar" class="py-3 text-sm text-gray-500 hover:text-gray-700">Importar CSV</button>
+    <button onclick="setTab('lista')" id="tab-lista" class="py-3 text-sm tab-active">Minha Coleção</button>
+    <button onclick="setTab('dashboard')" id="tab-dashboard" class="py-3 text-sm text-gray-500 hover:text-gray-700">Dashboard</button>
   </div>
 </div>
 
-<!-- LISTA TAB -->
+<!-- ===== LISTA TAB ===== -->
 <div id="tab-lista-content" class="max-w-6xl mx-auto px-4 py-4">
-
-  <!-- Filtros -->
   <div class="bg-white rounded-xl shadow-sm p-4 mb-4 space-y-3">
     <input id="busca" type="text" placeholder="🔍  Buscar por título, editora..."
       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
@@ -62,51 +66,201 @@
       <button onclick="limparFiltros()" class="text-sm text-indigo-600 hover:underline px-2">Limpar</button>
     </div>
   </div>
-
-  <!-- Contagem -->
   <p id="contagem" class="text-sm text-gray-500 mb-3"></p>
-
-  <!-- Lista -->
   <div id="lista" class="space-y-2"></div>
-
-  <!-- Paginação -->
   <div id="paginacao" class="flex justify-center gap-2 mt-6"></div>
 </div>
 
-<!-- STATS TAB -->
-<div id="tab-stats-content" class="max-w-6xl mx-auto px-4 py-4 hidden">
-  <div id="stats-content" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-</div>
+<!-- ===== DASHBOARD TAB ===== -->
+<div id="tab-dashboard-content" class="max-w-6xl mx-auto px-4 py-4 hidden">
 
-<!-- IMPORTAR TAB -->
-<div id="tab-importar-content" class="max-w-6xl mx-auto px-4 py-4 hidden">
-  <div class="bg-white rounded-xl shadow-sm p-6 max-w-lg">
-    <h2 class="font-semibold text-gray-800 mb-2">Importar do Google Sheets</h2>
-    <p class="text-sm text-gray-500 mb-4">
-      No Google Sheets: <strong>Arquivo → Fazer download → CSV</strong>.<br>
-      Depois selecione o arquivo abaixo.
-    </p>
-    <input type="file" id="csv-file" accept=".csv" class="block w-full text-sm text-gray-600 mb-4
-      file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
-      file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700
-      hover:file:bg-indigo-100">
-    <button onclick="importarCSV()" class="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
-      Importar
+  <!-- Filtros do dashboard -->
+  <div class="bg-white rounded-xl shadow-sm p-4 mb-4 flex flex-wrap gap-3 items-center">
+    <select id="d-editora" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+      <option value="TODOS">Todas as editoras</option>
+    </select>
+    <select id="d-categoria" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+      <option value="TODOS">Todas as categorias</option>
+    </select>
+    <select id="d-status" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+      <option value="TODOS">Todos</option>
+      <option value="SIM">✅ Lidos</option>
+      <option value="NÃO">📖 Não lidos</option>
+    </select>
+    <button onclick="sugerirLeitura()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
+      🎲 Próxima Leitura
     </button>
-    <p id="import-msg" class="mt-3 text-sm"></p>
+  </div>
+
+  <!-- Insights -->
+  <div class="grid grid-cols-3 gap-3 mb-4">
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center text-sm">
+      <div class="text-gray-400 text-xs mb-1">🏢 Top Editora</div>
+      <div id="d-top-editora" class="font-bold text-gray-800">—</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center text-sm">
+      <div class="text-gray-400 text-xs mb-1">📚 Top Categoria</div>
+      <div id="d-top-categoria" class="font-bold text-gray-800">—</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center text-sm">
+      <div class="text-gray-400 text-xs mb-1">📦 Total</div>
+      <div id="d-total-insight" class="font-bold text-gray-800">—</div>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+      <div class="text-2xl font-bold text-gray-800" id="d-total">—</div>
+      <div class="text-xs text-gray-400 mt-1">Total</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+      <div class="text-2xl font-bold text-green-600" id="d-lidos">—</div>
+      <div class="text-xs text-gray-400 mt-1">Lidos</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+      <div class="text-2xl font-bold text-indigo-600" id="d-nao-lidos">—</div>
+      <div class="text-xs text-gray-400 mt-1">Não lidos</div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 text-center">
+      <div class="text-2xl font-bold text-purple-600" id="d-pct">—</div>
+      <div class="text-xs text-gray-400 mt-1">% Leitura</div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="bg-white rounded-xl shadow-sm p-4">
+      <div class="text-sm font-semibold text-gray-600 mb-3">📚 Distribuição por Categoria</div>
+      <canvas id="chart-categorias" style="max-height:220px"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4">
+      <div class="text-sm font-semibold text-gray-600 mb-3">📈 Crescimento da Coleção</div>
+      <canvas id="chart-evolucao" style="max-height:220px"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4">
+      <div class="text-sm font-semibold text-gray-600 mb-3">🏢 Ranking de Editoras</div>
+      <canvas id="chart-editoras" style="max-height:220px"></canvas>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 overflow-y-auto" style="max-height:300px">
+      <div class="text-sm font-semibold text-gray-600 mb-3">🏆 Ranking Completo</div>
+      <div id="d-ranking" class="space-y-1"></div>
+    </div>
   </div>
 </div>
 
-<!-- MODAL -->
-<div id="modal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden px-4">
+<!-- datalists globais -->
+<datalist id="dl-titulos"></datalist>
+<datalist id="dl-editoras"></datalist>
+
+<!-- MODAL ADICIONAR (wizard) -->
+<div id="modal-add" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden px-4">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-y-auto" style="max-height:90vh">
+    <div class="p-6">
+      <!-- barra de progresso -->
+      <div class="flex gap-1 mb-5">
+        <div id="prog1" class="h-1 flex-1 rounded-full bg-indigo-500 transition-all"></div>
+        <div id="prog2" class="h-1 flex-1 rounded-full bg-gray-200 transition-all"></div>
+        <div id="prog3" class="h-1 flex-1 rounded-full bg-gray-200 transition-all"></div>
+        <div id="prog4" class="h-1 flex-1 rounded-full bg-gray-200 transition-all"></div>
+        <div id="prog5" class="h-1 flex-1 rounded-full bg-gray-200 transition-all"></div>
+      </div>
+
+      <!-- Step 1: Categoria -->
+      <div id="add-step1">
+        <p class="text-xs text-gray-400 mb-1">Etapa 1 de 5</p>
+        <h3 class="text-base font-bold text-gray-800 mb-4">Escolha a categoria</h3>
+        <div class="flex flex-col gap-3">
+          <button onclick="wizardSelectCategoria('HQ')"
+            class="w-full py-3 rounded-xl font-semibold text-white bg-orange-500 hover:bg-orange-600 transition text-sm">📖 HQ</button>
+          <button onclick="wizardSelectCategoria('MANGÁ')"
+            class="w-full py-3 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition text-sm">🇯🇵 MANGÁ</button>
+          <button onclick="wizardSelectCategoria('LIVRO')"
+            class="w-full py-3 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition text-sm">📗 LIVRO</button>
+        </div>
+        <button onclick="fecharModalAdd()" class="mt-4 w-full text-sm text-gray-400 hover:text-gray-600">Cancelar</button>
+      </div>
+
+      <!-- Step 2: Editora -->
+      <div id="add-step2" class="hidden">
+        <p class="text-xs text-gray-400 mb-1">Etapa 2 de 5</p>
+        <h3 class="text-base font-bold text-gray-800 mb-3">Selecione a editora</h3>
+        <div id="editoras-botoes" class="flex flex-wrap gap-2 max-h-52 overflow-y-auto mb-3 p-1"></div>
+        <div id="add-nova-editora" class="hidden mt-2">
+          <input id="nova-editora-input" type="text" placeholder="Nome da nova editora"
+            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-2">
+          <button onclick="wizardConfirmarNovaEditora()"
+            class="w-full py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 transition">Confirmar editora</button>
+        </div>
+        <button onclick="wizardVoltarStep(1)" class="mt-3 text-sm text-gray-400 hover:text-gray-600">← Voltar</button>
+      </div>
+
+      <!-- Step 3: Título + Edição -->
+      <div id="add-step3" class="hidden">
+        <p class="text-xs text-gray-400 mb-1">Etapa 3 de 5</p>
+        <h3 class="text-base font-bold text-gray-800 mb-3">Título e edição</h3>
+        <input id="add-titulo" list="dl-titulos" autocomplete="off" placeholder="Título da obra *"
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3">
+        <input id="add-edicao" placeholder="Número da edição ou 'Única'"
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-4">
+        <button onclick="wizardAvancarStep3()"
+          class="w-full py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">Avançar →</button>
+        <button onclick="wizardVoltarStep(2)" class="mt-3 text-sm text-gray-400 hover:text-gray-600">← Voltar</button>
+      </div>
+
+      <!-- Step 4: Lido? -->
+      <div id="add-step4" class="hidden">
+        <p class="text-xs text-gray-400 mb-1">Etapa 4 de 5</p>
+        <h3 class="text-base font-bold text-gray-800 mb-4">Já foi lido?</h3>
+        <div class="flex gap-3">
+          <button onclick="wizardSetLido('SIM')"
+            class="flex-1 py-3 rounded-xl font-semibold text-white bg-green-500 hover:bg-green-600 transition">✅ Sim</button>
+          <button onclick="wizardSetLido('NÃO')"
+            class="flex-1 py-3 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 transition">📖 Não</button>
+        </div>
+        <button onclick="wizardVoltarStep(3)" class="mt-4 text-sm text-gray-400 hover:text-gray-600">← Voltar</button>
+      </div>
+
+      <!-- Step 5: Observações + Data -->
+      <div id="add-step5" class="hidden">
+        <p class="text-xs text-gray-400 mb-1">Etapa 5 de 5</p>
+        <h3 class="text-base font-bold text-gray-800 mb-3">Detalhes finais</h3>
+        <label class="text-xs text-gray-500">Observações</label>
+        <input id="add-obs" placeholder="Autografado, item raro..."
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3 mt-1">
+        <label class="text-xs text-gray-500">Data de inclusão</label>
+        <input id="add-inclusao" type="text" placeholder="dd/mm/aaaa"
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-4 mt-1">
+        <button onclick="wizardFinalizar()"
+          class="w-full py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition">💾 Salvar</button>
+        <button onclick="wizardVoltarStep(4)" class="mt-3 text-sm text-gray-400 hover:text-gray-600">← Voltar</button>
+      </div>
+
+      <!-- Sucesso -->
+      <div id="add-sucesso" class="hidden text-center py-4">
+        <div class="text-4xl mb-3">✅</div>
+        <h3 class="text-base font-bold text-green-600 mb-1">Quadrinho adicionado!</h3>
+        <p class="text-sm text-gray-500 mb-5" id="add-sucesso-nome"></p>
+        <button onclick="wizardReset()"
+          class="w-full py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition mb-2">+ Adicionar outro</button>
+        <button onclick="fecharModalAdd()"
+          class="w-full py-2 rounded-lg border text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="modal-edit" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden px-4">
   <div class="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-screen overflow-y-auto">
     <div class="p-6">
-      <h2 id="modal-title" class="text-lg font-bold text-gray-800 mb-4">Novo Quadrinho</h2>
-      <form id="form" class="space-y-3" onsubmit="salvar(event)">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Editar Quadrinho</h2>
+      <form id="form-edit" class="space-y-3" onsubmit="salvar(event)">
         <input type="hidden" id="edit-id">
         <div>
           <label class="text-sm font-medium text-gray-700">Título *</label>
-          <input id="f-titulo" required class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+          <input id="f-titulo" list="dl-titulos" required autocomplete="off"
+            class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
@@ -125,11 +279,13 @@
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">Editora</label>
-          <input id="f-editora" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+          <input id="f-editora" list="dl-editoras" autocomplete="off"
+            class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">Data de Inclusão</label>
-          <input id="f-inclusao" type="text" placeholder="dd/mm/aaaa" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+          <input id="f-inclusao" type="text" placeholder="dd/mm/aaaa"
+            class="mt-1 w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
         </div>
         <div>
           <label class="text-sm font-medium text-gray-700">Observações</label>
@@ -141,7 +297,13 @@
         </div>
         <div class="flex gap-3 pt-2">
           <button type="submit" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700 transition">Salvar</button>
-          <button type="button" onclick="fecharModal()" class="flex-1 border py-2 rounded-lg font-semibold text-sm text-gray-600 hover:bg-gray-50 transition">Cancelar</button>
+          <button type="button" onclick="fecharModalEdit()" class="flex-1 border py-2 rounded-lg font-semibold text-sm text-gray-600 hover:bg-gray-50 transition">Cancelar</button>
+        </div>
+        <div class="pt-1">
+          <button type="button" onclick="deletarDoModal()"
+            class="w-full border border-red-200 text-red-500 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition">
+            🗑 Excluir este quadrinho
+          </button>
         </div>
       </form>
     </div>
@@ -149,13 +311,19 @@
 </div>
 
 <script>
+// ─── Estado global ───────────────────────────────────────────────
 let currentPage = 1;
 let debounceTimer;
-let currentTab = 'lista';
+let chartCat, chartEd, chartEv;
+const COLORS = ['#4f46e5','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#ca8a04','#dc2626','#9333ea','#059669'];
 
+// estado do wizard
+let wiz = {};
+let _editorasList = [];
+
+// ─── Tabs ────────────────────────────────────────────────────────
 function setTab(tab) {
-  currentTab = tab;
-  ['lista','stats','importar'].forEach(t => {
+  ['lista','dashboard'].forEach(t => {
     document.getElementById(`tab-${t}-content`).classList.add('hidden');
     const btn = document.getElementById(`tab-${t}`);
     btn.classList.remove('tab-active');
@@ -165,9 +333,10 @@ function setTab(tab) {
   const activeBtn = document.getElementById(`tab-${tab}`);
   activeBtn.classList.add('tab-active');
   activeBtn.classList.remove('text-gray-500');
-  if (tab === 'stats') carregarStats();
+  if (tab === 'dashboard') carregarDashboard();
 }
 
+// ─── Lista ───────────────────────────────────────────────────────
 function debounceBusca() {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => { currentPage = 1; buscar(); }, 300);
@@ -208,26 +377,21 @@ function renderLista(data) {
     return;
   }
   lista.innerHTML = data.items.map(q => `
-    <div class="bg-white rounded-xl shadow-sm p-4 flex items-start justify-between gap-3 card-hover transition cursor-pointer" onclick="editarItem(${q.id})">
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="font-semibold text-gray-800 text-sm truncate">${q.titulo}</span>
-          ${q.edicao ? `<span class="text-xs text-gray-400">#${q.edicao}</span>` : ''}
-          ${badgeCategoria(q.categoria)}
-          ${q.lido ? '<span class="text-xs text-green-600">✅</span>' : '<span class="text-xs text-gray-400">📖</span>'}
-        </div>
-        <div class="text-xs text-gray-400 mt-1 flex gap-3 flex-wrap">
-          ${q.editora ? `<span>${q.editora}</span>` : ''}
-          ${q.obs ? `<span class="text-amber-600">★ ${q.obs}</span>` : ''}
-          ${q.inclusao ? `<span>${q.inclusao}</span>` : ''}
-        </div>
+    <div class="bg-white rounded-xl shadow-sm p-4 card-hover transition cursor-pointer" onclick="editarItem(${q.id})">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="font-semibold text-gray-800 text-sm">${q.titulo}</span>
+        ${q.edicao ? `<span class="text-xs text-gray-400">#${q.edicao}</span>` : ''}
+        ${badgeCategoria(q.categoria)}
+        ${q.lido ? '<span class="text-xs text-green-600">✅</span>' : '<span class="text-xs text-gray-400">📖</span>'}
       </div>
-      <button onclick="event.stopPropagation(); confirmarDelete(${q.id}, '${q.titulo.replace(/'/g,"\\\'")}')"
-        class="text-gray-300 hover:text-red-500 transition text-lg leading-none flex-shrink-0">✕</button>
+      <div class="text-xs text-gray-400 mt-1 flex gap-3 flex-wrap">
+        ${q.editora ? `<span>${q.editora}</span>` : ''}
+        ${q.obs ? `<span class="text-amber-600">★ ${q.obs}</span>` : ''}
+        ${q.inclusao ? `<span>${q.inclusao}</span>` : ''}
+      </div>
     </div>
   `).join('');
 
-  // Paginação
   const totalPages = Math.ceil(data.total / data.per_page);
   const pag = document.getElementById('paginacao');
   if (totalPages <= 1) { pag.innerHTML = ''; return; }
@@ -240,6 +404,7 @@ function renderLista(data) {
 
 function irPagina(p) { currentPage = p; buscar(); window.scrollTo(0,0); }
 
+// ─── Filtros / Sugestões ─────────────────────────────────────────
 async function carregarFiltros() {
   const res = await fetch('/api/filtros');
   const data = await res.json();
@@ -247,6 +412,20 @@ async function carregarFiltros() {
   data.categorias.forEach(c => { if(c) selCat.innerHTML += `<option>${c}</option>`; });
   const selEd = document.getElementById('filtro-editora');
   data.editoras.forEach(e => { if(e) selEd.innerHTML += `<option>${e}</option>`; });
+  const dEd = document.getElementById('d-editora');
+  data.editoras.forEach(e => { if(e) dEd.innerHTML += `<option>${e}</option>`; });
+  const dCat = document.getElementById('d-categoria');
+  data.categorias.forEach(c => { if(c) dCat.innerHTML += `<option>${c}</option>`; });
+}
+
+async function carregarSugestoes() {
+  const res = await fetch('/api/sugestoes');
+  const data = await res.json();
+  const dlTitulos = document.getElementById('dl-titulos');
+  data.titulos.forEach(t => { const o = document.createElement('option'); o.value = t; dlTitulos.appendChild(o); });
+  const dlEditoras = document.getElementById('dl-editoras');
+  data.editoras.forEach(e => { const o = document.createElement('option'); o.value = e; dlEditoras.appendChild(o); });
+  _editorasList = data.editoras;
 }
 
 async function carregarHeaderStats() {
@@ -255,70 +434,207 @@ async function carregarHeaderStats() {
   document.getElementById('header-stats').textContent = `${s.total} itens · ${s.lidos} lidos · ${s.nao_lidos} para ler`;
 }
 
-async function carregarStats() {
-  const res = await fetch('/api/stats');
-  const s = await res.json();
-  const pct = s.total ? Math.round(s.lidos / s.total * 100) : 0;
-  document.getElementById('stats-content').innerHTML = `
-    <div class="bg-white rounded-xl shadow-sm p-5">
-      <h3 class="font-semibold text-gray-700 mb-3">Resumo geral</h3>
-      <div class="space-y-2">
-        <div class="flex justify-between text-sm"><span class="text-gray-500">Total</span><span class="font-bold text-gray-800">${s.total}</span></div>
-        <div class="flex justify-between text-sm"><span class="text-gray-500">Lidos</span><span class="font-bold text-green-600">${s.lidos}</span></div>
-        <div class="flex justify-between text-sm"><span class="text-gray-500">Para ler</span><span class="font-bold text-indigo-600">${s.nao_lidos}</span></div>
-        <div class="mt-3">
-          <div class="flex justify-between text-xs text-gray-400 mb-1"><span>Progresso de leitura</span><span>${pct}%</span></div>
-          <div class="w-full bg-gray-100 rounded-full h-2"><div class="bg-indigo-500 h-2 rounded-full" style="width:${pct}%"></div></div>
-        </div>
-      </div>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm p-5">
-      <h3 class="font-semibold text-gray-700 mb-3">Por categoria</h3>
-      <div class="space-y-2">
-        ${s.por_categoria.map(c => `
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500">${c.categoria || 'Sem categoria'}</span>
-            <span class="font-bold text-gray-800">${c.qtd}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 sm:col-span-2">
-      <h3 class="font-semibold text-gray-700 mb-3">Top 10 editoras</h3>
-      <div class="grid grid-cols-2 gap-x-8 gap-y-2">
-        ${s.por_editora.map(e => `
-          <div class="flex justify-between text-sm">
-            <span class="text-gray-500 truncate">${e.editora || 'Sem editora'}</span>
-            <span class="font-bold text-gray-800 ml-2">${e.qtd}</span>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `;
+// ─── Dashboard ───────────────────────────────────────────────────
+async function carregarDashboard() {
+  const editora = document.getElementById('d-editora').value;
+  const categoria = document.getElementById('d-categoria').value;
+  const status = document.getElementById('d-status').value;
+  const params = new URLSearchParams({ editora, categoria, status });
+  const res = await fetch(`/api/dashboard?${params}`);
+  const d = await res.json();
+  renderDashboard(d);
 }
 
-function abrirModal(dados = null) {
-  document.getElementById('modal-title').textContent = dados ? 'Editar Quadrinho' : 'Novo Quadrinho';
-  document.getElementById('edit-id').value = dados ? dados.id : '';
-  document.getElementById('f-titulo').value = dados?.titulo || '';
-  document.getElementById('f-edicao').value = dados?.edicao || '';
-  document.getElementById('f-editora').value = dados?.editora || '';
-  document.getElementById('f-categoria').value = dados?.categoria || '';
-  document.getElementById('f-obs').value = dados?.obs || '';
-  document.getElementById('f-inclusao').value = dados?.inclusao || '';
-  document.getElementById('f-lido').checked = dados?.lido == 1;
-  document.getElementById('modal').classList.remove('hidden');
-  document.getElementById('f-titulo').focus();
+function renderDashboard(d) {
+  document.getElementById('d-top-editora').textContent = d.insights.top_editora;
+  document.getElementById('d-top-categoria').textContent = d.insights.top_categoria;
+  document.getElementById('d-total-insight').textContent = d.total;
+  document.getElementById('d-total').textContent = d.total;
+  document.getElementById('d-lidos').textContent = d.lidos;
+  document.getElementById('d-nao-lidos').textContent = d.nao_lidos;
+  document.getElementById('d-pct').textContent = Math.round(d.percentual * 100) + '%';
+
+  document.getElementById('d-ranking').innerHTML = d.editoras_sorted.map((e, i) => `
+    <div class="flex justify-between items-center py-1.5 border-b border-gray-50 cursor-pointer hover:bg-indigo-50 rounded px-2 text-sm"
+      onclick="filtrarDashboardEditora('${e[0]}')">
+      <span class="text-gray-600">${i+1}. ${e[0]}</span>
+      <span class="font-bold text-gray-800">${e[1]}</span>
+    </div>
+  `).join('');
+
+  if (chartCat) chartCat.destroy();
+  if (chartEd) chartEd.destroy();
+  if (chartEv) chartEv.destroy();
+
+  chartCat = new Chart(document.getElementById('chart-categorias'), {
+    type: 'doughnut',
+    data: { labels: Object.keys(d.categorias), datasets: [{ data: Object.values(d.categorias), backgroundColor: COLORS }] },
+    options: { plugins: { legend: { position: 'bottom' } } }
+  });
+
+  chartEd = new Chart(document.getElementById('chart-editoras'), {
+    type: 'bar',
+    data: {
+      labels: d.editoras_sorted.slice(0,10).map(e => e[0]),
+      datasets: [{ data: d.editoras_sorted.slice(0,10).map(e => e[1]), backgroundColor: COLORS }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 10 } } } } }
+  });
+
+  const labels = Object.keys(d.evolucao).sort();
+  chartEv = new Chart(document.getElementById('chart-evolucao'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{ data: labels.map(l => d.evolucao[l] || 0), borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,0.1)', tension: 0.4, fill: true }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { x: { ticks: { font: { size: 10 } } } } }
+  });
 }
 
-function fecharModal() {
-  document.getElementById('modal').classList.add('hidden');
+function filtrarDashboardEditora(nome) {
+  document.getElementById('d-editora').value = nome;
+  carregarDashboard();
+}
+
+// ─── Wizard: Adicionar ───────────────────────────────────────────
+function hojeFormatado() {
+  const d = new Date();
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+
+function wizardShowStep(n) {
+  [1,2,3,4,5].forEach(i => {
+    document.getElementById(`add-step${i}`).classList.add('hidden');
+    document.getElementById(`prog${i}`).classList.replace('bg-indigo-500','bg-gray-200');
+  });
+  document.getElementById('add-sucesso').classList.add('hidden');
+  if (n) {
+    document.getElementById(`add-step${n}`).classList.remove('hidden');
+    for (let i = 1; i <= n; i++)
+      document.getElementById(`prog${i}`).classList.replace('bg-gray-200','bg-indigo-500');
+  }
+}
+
+function abrirModalAdd() {
+  wiz = { categoria:'', editora:'', titulo:'', edicao:'', lido:'', obs:'', inclusao: hojeFormatado() };
+  document.getElementById('add-nova-editora').classList.add('hidden');
+  document.getElementById('nova-editora-input').value = '';
+  document.getElementById('add-titulo').value = '';
+  document.getElementById('add-edicao').value = '';
+  document.getElementById('add-obs').value = '';
+  document.getElementById('add-inclusao').value = hojeFormatado();
+  wizardShowStep(1);
+  document.getElementById('modal-add').classList.remove('hidden');
+}
+
+function fecharModalAdd() {
+  document.getElementById('modal-add').classList.add('hidden');
+}
+
+function wizardSelectCategoria(cat) {
+  wiz.categoria = cat;
+  // monta botões de editoras
+  const box = document.getElementById('editoras-botoes');
+  box.innerHTML = '';
+  const editoras = _editorasList;
+  editoras.forEach(ed => {
+    const btn = document.createElement('button');
+    btn.textContent = ed;
+    btn.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition';
+    btn.onclick = () => { wiz.editora = ed; wizardShowStep(3); setTimeout(() => document.getElementById('add-titulo').focus(), 100); };
+    box.appendChild(btn);
+  });
+  const novoBtn = document.createElement('button');
+  novoBtn.textContent = '+ Nova editora';
+  novoBtn.className = 'px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 transition';
+  novoBtn.onclick = () => document.getElementById('add-nova-editora').classList.remove('hidden');
+  box.appendChild(novoBtn);
+  wizardShowStep(2);
+}
+
+function wizardConfirmarNovaEditora() {
+  const val = document.getElementById('nova-editora-input').value.trim();
+  if (!val) { alert('Digite o nome da editora.'); return; }
+  wiz.editora = val;
+  wizardShowStep(3);
+  setTimeout(() => document.getElementById('add-titulo').focus(), 100);
+}
+
+function wizardVoltarStep(n) { wizardShowStep(n); }
+
+function wizardAvancarStep3() {
+  const titulo = document.getElementById('add-titulo').value.trim();
+  if (!titulo) { alert('Digite o título da obra.'); return; }
+  wiz.titulo = titulo;
+  wiz.edicao = document.getElementById('add-edicao').value.trim();
+  wizardShowStep(4);
+}
+
+function wizardSetLido(valor) {
+  wiz.lido = valor;
+  wizardShowStep(5);
+  setTimeout(() => document.getElementById('add-obs').focus(), 100);
+}
+
+async function wizardFinalizar() {
+  wiz.obs = document.getElementById('add-obs').value.trim();
+  wiz.inclusao = document.getElementById('add-inclusao').value.trim() || hojeFormatado();
+  const body = {
+    titulo: wiz.titulo,
+    edicao: wiz.edicao || null,
+    editora: wiz.editora || null,
+    categoria: wiz.categoria || null,
+    lido: wiz.lido === 'SIM',
+    obs: wiz.obs || null,
+    inclusao: wiz.inclusao,
+  };
+  await fetch('/api/quadrinhos', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  document.getElementById('add-sucesso-nome').textContent = wiz.titulo + (wiz.edicao ? ` — Edição ${wiz.edicao}` : '');
+  wizardShowStep(0);
+  document.getElementById('add-sucesso').classList.remove('hidden');
+  buscar();
+  carregarHeaderStats();
+  // atualiza sugestões com nova editora se for nova
+  if (!_editorasList.includes(wiz.editora)) {
+    carregarSugestoes();
+    carregarFiltros();
+  }
+}
+
+function wizardReset() {
+  wiz = { ...wiz, titulo:'', edicao:'', lido:'', obs:'', inclusao: hojeFormatado() };
+  document.getElementById('add-titulo').value = '';
+  document.getElementById('add-edicao').value = '';
+  document.getElementById('add-obs').value = '';
+  document.getElementById('add-inclusao').value = hojeFormatado();
+  document.getElementById('add-nova-editora').classList.add('hidden');
+  document.getElementById('nova-editora-input').value = '';
+  wizardShowStep(1);
+}
+
+// ─── Modal Editar ────────────────────────────────────────────────
+function abrirModalEdit(dados) {
+  document.getElementById('edit-id').value = dados.id;
+  document.getElementById('f-titulo').value = dados.titulo || '';
+  document.getElementById('f-edicao').value = dados.edicao || '';
+  document.getElementById('f-editora').value = dados.editora || '';
+  document.getElementById('f-categoria').value = dados.categoria || '';
+  document.getElementById('f-obs').value = dados.obs || '';
+  document.getElementById('f-inclusao').value = dados.inclusao || hojeFormatado();
+  document.getElementById('f-lido').checked = dados.lido == true;
+  document.getElementById('modal-edit').classList.remove('hidden');
+  setTimeout(() => document.getElementById('f-titulo').focus(), 100);
+}
+
+function fecharModalEdit() {
+  document.getElementById('modal-edit').classList.add('hidden');
 }
 
 async function editarItem(id) {
   const res = await fetch(`/api/quadrinhos/${id}`);
   const data = await res.json();
-  abrirModal(data);
+  abrirModalEdit(data);
 }
 
 async function salvar(e) {
@@ -333,44 +649,37 @@ async function salvar(e) {
     inclusao: document.getElementById('f-inclusao').value || null,
     lido: document.getElementById('f-lido').checked,
   };
-  const method = id ? 'PUT' : 'POST';
-  const url = id ? `/api/quadrinhos/${id}` : '/api/quadrinhos';
-  await fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-  fecharModal();
+  await fetch(`/api/quadrinhos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  fecharModalEdit();
   buscar();
   carregarHeaderStats();
-  carregarFiltros();
 }
 
-async function confirmarDelete(id, titulo) {
-  if (!confirm(`Remover "${titulo}"?`)) return;
+async function deletarDoModal() {
+  const id = document.getElementById('edit-id').value;
+  const titulo = document.getElementById('f-titulo').value;
+  if (!confirm(`Remover "${titulo}"?\n\nEsta ação não pode ser desfeita.`)) return;
   await fetch(`/api/quadrinhos/${id}`, { method: 'DELETE' });
+  fecharModalEdit();
   buscar();
   carregarHeaderStats();
 }
 
-async function importarCSV() {
-  const file = document.getElementById('csv-file').files[0];
-  if (!file) { alert('Selecione um arquivo CSV'); return; }
-  const form = new FormData();
-  form.append('file', file);
-  const res = await fetch('/api/importar', { method: 'POST', body: form });
-  const data = await res.json();
-  const msg = document.getElementById('import-msg');
-  msg.textContent = `✅ ${data.importados} quadrinhos importados com sucesso!`;
-  msg.className = 'mt-3 text-sm text-green-600';
-  buscar();
-  carregarHeaderStats();
-  carregarFiltros();
+// ─── Sugestão de leitura ─────────────────────────────────────────
+async function sugerirLeitura() {
+  const res = await fetch('/api/sugerir');
+  const d = await res.json();
+  const msg = d.edicao ? `${d.titulo} — Edição ${d.edicao}` : d.titulo;
+  alert('📖 Leia hoje:\n\n' + msg);
 }
 
-// Fechar modal clicando fora
-document.getElementById('modal').addEventListener('click', function(e) {
-  if (e.target === this) fecharModal();
-});
+// ─── Fechar modais clicando fora ─────────────────────────────────
+document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) fecharModalAdd(); });
+document.getElementById('modal-edit').addEventListener('click', function(e) { if (e.target === this) fecharModalEdit(); });
 
-// Init
+// ─── Init ────────────────────────────────────────────────────────
 carregarFiltros();
+carregarSugestoes();
 buscar();
 carregarHeaderStats();
 </script>
