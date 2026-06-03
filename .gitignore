@@ -2,3 +2,9 @@
 __pycache__/
 *.pyc
 .env
+backups/
+.DS_Store
+~$*.xlsx
+*.xlsx
+google_credentials.json
+*.log

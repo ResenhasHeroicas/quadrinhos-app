@@ -1,16 +1,13 @@
 services:
   - type: web
     name: quadrinhos-app
-    runtime: python
+    env: python
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: quadrinhos-db
-          property: connectionString
-
-databases:
-  - name: quadrinhos-db
-    databaseName: quadrinhos
-    plan: free
+      - key: PULL_ON_STARTUP
+        value: true
+      - key: GOOGLE_SHEETS_ID
+        sync: false
+      - key: GOOGLE_CREDENTIALS_JSON
+        sync: false
