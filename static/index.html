@@ -2,8 +2,16 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>📚 Coleção de Quadrinhos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Quadrinhos</title>
+
+  <!-- PWA / Home screen iPhone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Quadrinhos">
+  <meta name="theme-color" content="#4338ca">
+  <link rel="apple-touch-icon" href="/static/icon.png">
+  <link rel="manifest" href="/static/manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -33,6 +41,9 @@
       color: var(--text);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      /* Safe area para notch/Dynamic Island do iPhone */
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
     }
     h1 { letter-spacing: -.02em; }
     h2, h3 { letter-spacing: -.01em; }
@@ -126,25 +137,26 @@
 
 <!-- Header -->
 <header class="header-grad text-white shadow-lg">
-  <div class="max-w-6xl mx-auto px-4 py-5 flex items-center justify-between gap-3 flex-wrap">
+  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-2 flex-wrap">
     <div>
-      <h1 class="text-2xl font-bold tracking-tight">Coleção de Quadrinhos</h1>
-      <div id="header-stats" class="flex gap-2 mt-2 flex-wrap"></div>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Coleção de Quadrinhos</h1>
+      <div id="header-stats" class="flex gap-2 mt-1.5 flex-wrap"></div>
     </div>
-    <div class="flex gap-2">
-      <button onclick="toggleDark()" id="btn-dark" class="bg-white bg-opacity-20 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-30 transition" title="Modo escuro">
+    <div class="flex gap-1.5 flex-wrap justify-end">
+      <button onclick="toggleDark()" id="btn-dark"
+        class="bg-white bg-opacity-20 text-white px-2.5 py-1.5 rounded-lg text-sm font-semibold hover:bg-opacity-30 transition" title="Modo escuro">
         🌙
       </button>
-      <a href="/api/exportar" class="bg-white bg-opacity-20 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-30 transition">
-        ⬇ Backup
-      </a>
-      <button onclick="salvarSheets()" id="btn-salvar" class="bg-white bg-opacity-20 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-30 transition" title="Salvar dados do app na nuvem">
-        ☁️ Salvar
+      <button onclick="salvarSheets()" id="btn-salvar"
+        class="bg-white bg-opacity-20 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-opacity-30 transition" title="Salvar na nuvem">
+        ☁️ <span class="hidden xs:inline sm:inline">Salvar</span>
       </button>
-      <button onclick="carregarSheets()" id="btn-carregar" class="bg-white bg-opacity-20 text-white px-3 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-30 transition" title="Carregar dados da nuvem para o app">
-        🔄 Carregar
+      <button onclick="carregarSheets()" id="btn-carregar"
+        class="bg-white bg-opacity-20 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-opacity-30 transition" title="Carregar da nuvem">
+        🔄 <span class="hidden xs:inline sm:inline">Carregar</span>
       </button>
-      <button onclick="abrirModalAdd()" class="bg-white text-indigo-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-indigo-50 transition">
+      <button onclick="abrirModalAdd()"
+        class="bg-white text-indigo-700 px-3 py-1.5 rounded-lg font-semibold text-sm hover:bg-indigo-50 transition">
         + Novo
       </button>
     </div>
@@ -165,28 +177,28 @@
     <input id="busca" type="text" placeholder="🔍  Buscar por título, editora..."
       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
       oninput="debounceBusca()">
-    <div class="flex gap-2 flex-wrap">
-      <select id="filtro-categoria" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+    <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+      <select id="filtro-categoria" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
         <option value="">Todas as categorias</option>
       </select>
-      <select id="filtro-editora" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+      <select id="filtro-editora" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
         <option value="">Todas as editoras</option>
       </select>
-      <select id="filtro-lido" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+      <select id="filtro-lido" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
         <option value="">📖 Leitura: todos</option>
         <option value="sim">✅ Lidos</option>
         <option value="nao">📕 Não lidos</option>
       </select>
-      <select id="ordenar" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+      <select id="ordenar" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
         <option value="">Ordem A-Z</option>
         <option value="recentes">Mais recentes</option>
         <option value="nao_lidos">Não lidos primeiro</option>
       </select>
       <button id="btn-autografado" onclick="toggleAutografado()"
-        class="pill border px-3 py-2 text-sm font-medium text-gray-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-600 transition">
+        class="pill border px-3 py-2 text-sm font-medium text-gray-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-600 transition col-span-1">
         ★ Autografados
       </button>
-      <button onclick="limparFiltros()" class="text-sm text-indigo-600 hover:underline px-2">Limpar</button>
+      <button onclick="limparFiltros()" class="text-sm text-indigo-600 hover:underline px-2 col-span-1">Limpar</button>
     </div>
   </div>
   <p id="contagem" class="text-sm text-gray-500 mb-3"></p>
@@ -198,19 +210,19 @@
 <div id="tab-dashboard-content" class="max-w-6xl mx-auto px-4 py-4 hidden">
 
   <!-- Filtros do dashboard -->
-  <div class="bg-white rounded-xl shadow-sm p-4 mb-4 flex flex-wrap gap-3 items-center">
-    <select id="d-editora" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+  <div class="bg-white rounded-xl shadow-sm p-4 mb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 items-center">
+    <select id="d-editora" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
       <option value="TODOS">Todas as editoras</option>
     </select>
-    <select id="d-categoria" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+    <select id="d-categoria" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
       <option value="TODOS">Todas as categorias</option>
     </select>
-    <select id="d-status" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+    <select id="d-status" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
       <option value="TODOS">📖 Leitura: todos</option>
       <option value="SIM">✅ Lidos</option>
       <option value="NÃO">📕 Não lidos</option>
     </select>
-    <select id="d-periodo" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300">
+    <select id="d-periodo" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
       <option value="TODOS">📅 Todo o período</option>
     </select>
     <button onclick="sugerirLeitura()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-700 transition">
@@ -238,7 +250,7 @@
     <div class="bg-white rounded-xl shadow-sm p-3 sm:p-4 flex items-center gap-2 sm:gap-3 overflow-hidden col-span-2 sm:col-span-1">
       <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-emerald-100 flex items-center justify-center text-base sm:text-lg shrink-0">💰</div>
       <div class="flex-1 overflow-hidden">
-        <div class="font-bold text-emerald-600 leading-none" style="font-size:clamp(0.65rem,2.8vw,1.5rem)" id="d-gasto">—</div>
+        <div class="text-lg sm:text-2xl font-bold text-emerald-600 leading-none truncate" id="d-gasto">—</div>
         <div class="text-xs text-gray-400 mt-1">Total investido</div>
       </div>
     </div>
