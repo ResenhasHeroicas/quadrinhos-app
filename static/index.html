@@ -168,6 +168,7 @@
   <div class="max-w-6xl mx-auto px-4 flex gap-6">
     <button onclick="setTab('lista')" id="tab-lista" class="py-3 text-sm tab-active">Minha Coleção</button>
     <button onclick="setTab('dashboard')" id="tab-dashboard" class="py-3 text-sm text-gray-500 hover:text-gray-700">Dashboard</button>
+    <button onclick="setTab('historico')" id="tab-historico" class="py-3 text-sm text-gray-500 hover:text-gray-700">Histórico</button>
   </div>
 </div>
 
@@ -309,6 +310,42 @@
       <div id="d-ranking" class="space-y-1"></div>
     </div>
   </div>
+</div>
+
+<!-- ===== HISTÓRICO TAB ===== -->
+<div id="tab-historico-content" class="max-w-6xl mx-auto px-4 py-4 hidden">
+
+  <!-- Filtro de ano -->
+  <div class="flex items-center gap-3 mb-4">
+    <span class="text-sm font-semibold text-gray-500">Ano:</span>
+    <select id="hist-ano" onchange="carregarHistorico()" class="border rounded-lg px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300"></select>
+  </div>
+
+  <!-- Indicadores -->
+  <div class="grid grid-cols-3 gap-3 mb-5">
+    <!-- Mês atual -->
+    <div class="bg-white rounded-xl shadow-sm p-3 flex flex-col items-center text-center overflow-hidden">
+      <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1" id="hist-mes-label">Este mês</div>
+      <div class="text-2xl font-bold text-indigo-600 leading-none" id="hist-mes-count">—</div>
+      <div class="text-[10px] text-gray-400 mt-1" id="hist-mes-comp"></div>
+    </div>
+    <!-- Total ano -->
+    <div class="bg-white rounded-xl shadow-sm p-3 flex flex-col items-center text-center overflow-hidden">
+      <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1" id="hist-ano-label">Total ano</div>
+      <div class="text-2xl font-bold text-purple-600 leading-none" id="hist-total-ano">—</div>
+      <div class="text-[10px] text-gray-400 mt-1">títulos lidos</div>
+    </div>
+    <!-- Categoria favorita -->
+    <div class="bg-white rounded-xl shadow-sm p-3 flex flex-col items-center text-center overflow-hidden">
+      <div class="text-[10px] uppercase tracking-wide text-gray-400 mb-1">Cat. favorita</div>
+      <div class="font-bold text-emerald-600 leading-tight truncate w-full text-center" style="font-size:clamp(0.65rem,3vw,1rem)" id="hist-cat-fav">—</div>
+      <div class="text-[10px] text-gray-400 mt-1" id="hist-cat-pct"></div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div id="hist-timeline" class="space-y-4"></div>
+
 </div>
 
 <!-- datalists globais -->
@@ -501,7 +538,7 @@ let _editorasList = [];
 
 // ─── Tabs ────────────────────────────────────────────────────────
 function setTab(tab) {
-  ['lista','dashboard'].forEach(t => {
+  ['lista','dashboard','historico'].forEach(t => {
     document.getElementById(`tab-${t}-content`).classList.add('hidden');
     const btn = document.getElementById(`tab-${t}`);
     btn.classList.remove('tab-active');
@@ -512,6 +549,7 @@ function setTab(tab) {
   activeBtn.classList.add('tab-active');
   activeBtn.classList.remove('text-gray-500');
   if (tab === 'dashboard') carregarDashboard();
+  if (tab === 'historico') carregarHistorico();
 }
 
 // ─── Lista ───────────────────────────────────────────────────────
@@ -1141,6 +1179,85 @@ async function carregarSheets() {
     btn.textContent = original;
     btn.disabled = false;
   }
+}
+
+// ─── Histórico de Leitura ────────────────────────────────────────
+async function carregarHistorico() {
+  const ano = document.getElementById('hist-ano').value || '';
+  const res = await fetch(`/api/historico?ano=${encodeURIComponent(ano)}`);
+  const d = await res.json();
+
+  // Popula select de anos (só na primeira vez ou se vazio)
+  const sel = document.getElementById('hist-ano');
+  if (sel.options.length === 0 && d.anos_disponiveis) {
+    d.anos_disponiveis.forEach(a => {
+      const o = document.createElement('option');
+      o.value = a; o.textContent = a;
+      sel.appendChild(o);
+    });
+    if (!ano && d.stats.ano) sel.value = d.stats.ano;
+  }
+
+  renderHistorico(d);
+}
+
+function renderHistorico(d) {
+  const s = d.stats;
+
+  // Indicadores
+  document.getElementById('hist-mes-label').textContent = s.mes_atual_label;
+  document.getElementById('hist-mes-count').textContent = s.mes_atual_count;
+  const diff = s.mes_atual_count - s.mesmo_mes_ano_ant_count;
+  const sinal = diff > 0 ? '▲' : diff < 0 ? '▼' : '=';
+  const cor = diff > 0 ? 'text-emerald-500' : diff < 0 ? 'text-red-400' : 'text-gray-400';
+  document.getElementById('hist-mes-comp').innerHTML =
+    `<span class="${cor}">${sinal} ${Math.abs(diff)} vs ${s.mesmo_mes_ano_ant_label}</span>`;
+
+  document.getElementById('hist-ano-label').textContent = `Total ${s.ano}`;
+  document.getElementById('hist-total-ano').textContent = s.total_ano;
+  document.getElementById('hist-cat-fav').textContent = s.categoria_favorita || '—';
+  document.getElementById('hist-cat-pct').textContent = s.categoria_favorita_count
+    ? `${s.categoria_favorita_count} títulos · ${s.categoria_favorita_pct}%`
+    : '';
+
+  // Timeline
+  const timeline = document.getElementById('hist-timeline');
+  if (!d.por_mes || d.por_mes.length === 0) {
+    timeline.innerHTML = `<div class="text-center text-gray-400 py-16">
+      <div class="text-4xl mb-3">📖</div>
+      <p class="text-gray-500">Nenhuma leitura registrada em ${s.ano}</p>
+    </div>`;
+    return;
+  }
+
+  timeline.innerHTML = d.por_mes.map(m => `
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+        <div class="flex items-center gap-2">
+          <span class="text-base">✅</span>
+          <span class="font-semibold text-gray-700">${m.label}</span>
+        </div>
+        <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">${m.count} título${m.count !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="px-4 py-3 space-y-1.5">
+        ${m.items.map(it => `
+          <div class="flex items-center gap-2 py-0.5 cursor-pointer hover:bg-gray-50 rounded px-1 -mx-1"
+               onclick="editarItem(${it.id})">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 ${catDot(it.categoria)}"></span>
+            <span class="text-sm text-gray-700">${it.titulo}${it.edicao ? ` <span class="text-gray-400">#${it.edicao}</span>` : ''}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function catDot(cat) {
+  const c = (cat || '').toUpperCase();
+  if (c === 'HQ') return 'bg-orange-400';
+  if (c === 'MANGÁ' || c === 'MANGA') return 'bg-pink-400';
+  if (c === 'LIVRO') return 'bg-emerald-400';
+  return 'bg-gray-300';
 }
 
 // ─── Init ────────────────────────────────────────────────────────

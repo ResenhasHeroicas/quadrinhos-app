@@ -28,7 +28,16 @@ _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 XLSX_PATH = os.environ.get("XLSX_PATH", os.path.join(_BASE_DIR, "quadrinhos.xlsx"))
 BACKUP_DIR = os.path.join(_BASE_DIR, "backups")
 SHEET_NAME = "QUADRINHOS"
-HEADER = ["TÍTULO", "EDIÇÃO", "EDITORA", "CATEGORIA", "LIDO", "OBS", "INCLUSAO", "VALOR"]
+HEADER = ["TÍTULO", "EDIÇÃO", "EDITORA", "CATEGORIA", "LIDO", "OBS", "INCLUSAO", "VALOR", "DATA_LEITURA"]
+MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
+
+def _label_mes(mes_ano):
+    """'05/2026' → 'Mai/2026'"""
+    try:
+        p = mes_ano.split("/")
+        return f"{MESES_PT[int(p[0])-1]}/{p[1]}"
+    except Exception:
+        return mes_ano
 
 
 def parse_valor(v):
@@ -161,6 +170,7 @@ def row_to_dict(row_index, row_values):
         "obs": g(5) or None,
         "inclusao": g(6) or None,
         "valor": parse_valor(row_values[7]) if len(row_values) > 7 else None,
+        "data_leitura": g(8) or None,
     }
 
 
@@ -182,6 +192,7 @@ class Quadrinho(BaseModel):
     obs: Optional[str] = None
     inclusao: Optional[str] = None
     valor: Optional[str] = None
+    data_leitura: Optional[str] = None
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -235,10 +246,12 @@ def obter(row_index: int):
 
 @app.post("/api/quadrinhos", status_code=201)
 def criar(q: Quadrinho, background: BackgroundTasks):
+    # Auto-preenche DATA_LEITURA com mês atual se marcado como lido
+    dl = q.data_leitura or (date.today().strftime("%m/%Y") if q.lido else "")
     valores = [q.titulo, q.edicao or "", q.editora or "", q.categoria or "",
                "SIM" if q.lido else "NÃO", q.obs or "",
                q.inclusao or date.today().strftime("%d/%m/%Y"),
-               parse_valor(q.valor)]
+               parse_valor(q.valor), dl]
     with _lock:
         wb = load_wb(); ws = get_ws(wb)
         ws.append(valores)
@@ -249,9 +262,16 @@ def criar(q: Quadrinho, background: BackgroundTasks):
 
 @app.put("/api/quadrinhos/{row_index}")
 def atualizar(row_index: int, q: Quadrinho, background: BackgroundTasks):
+    # Auto-preenche DATA_LEITURA com mês atual ao marcar como lido (se ainda não tiver)
+    dl = q.data_leitura or ""
+    if q.lido and not dl:
+        # Verifica se já tinha DATA_LEITURA antes
+        atual = next((r for i, r in get_data_rows() if i == row_index), None)
+        dl_atual = str(atual[8]).strip() if atual and len(atual) > 8 and atual[8] else ""
+        dl = dl_atual or date.today().strftime("%m/%Y")
     valores = [q.titulo, q.edicao or "", q.editora or "", q.categoria or "",
                "SIM" if q.lido else "NÃO", q.obs or "", q.inclusao or "",
-               parse_valor(q.valor)]
+               parse_valor(q.valor), dl]
     with _lock:
         wb = load_wb(); ws = get_ws(wb)
         if row_index < 2 or row_index > ws.max_row:
@@ -516,7 +536,7 @@ def _cell_to_str(v):
 
 
 def _row_for_sheets(values):
-    return [_cell_to_str(values[i]) if i < len(values) else "" for i in range(8)]
+    return [_cell_to_str(values[i]) if i < len(values) else "" for i in range(9)]
 
 
 def _sync_to_sheets(action, row_index=None, values=None):
@@ -552,7 +572,7 @@ def _pull_from_sheets():
     for r in valores[1:]:  # pula o cabeçalho
         if not any(str(c).strip() for c in r):
             continue
-        ws.append([(r[i] if i < len(r) else "") for i in range(8)])
+        ws.append([(r[i] if i < len(r) else "") for i in range(9)])
         n += 1
     with _lock:
         save_wb(wb)
@@ -571,7 +591,7 @@ def sincronizar_sheets():
         with _gs_lock:
             ws_gs.clear()
             ws_gs.update(sheet_data, value_input_option="USER_ENTERED")
-            ws_gs.format("A1:H1", {
+            ws_gs.format("A1:I1", {
                 "backgroundColor": {"red": 0.26, "green": 0.22, "blue": 0.79},
                 "textFormat": {"bold": True, "foregroundColor": {"red": 1, "green": 1, "blue": 1}},
                 "horizontalAlignment": "CENTER",
@@ -605,6 +625,80 @@ def _startup_pull():
             print(f"[startup] {n} itens carregados do Google Sheets.")
         except Exception as e:
             print(f"[startup] pull do Sheets falhou (usando arquivo local): {e}")
+
+
+@app.get("/api/historico")
+def historico(ano: str = ""):
+    rows = get_data_rows()
+    hoje = date.today()
+    ano_filtro = ano or str(hoje.year)
+    mes_atual = f"{hoje.month:02d}/{hoje.year}"
+    mesmo_mes_ano_ant = f"{hoje.month:02d}/{hoje.year - 1}"
+
+    por_mes: dict = {}
+    cat_count_ano: dict = {}
+    total_ano = 0
+
+    for row_i, r in rows:
+        dl = str(r[8]).strip() if len(r) > 8 and r[8] else ""
+        if not dl or "/" not in dl:
+            continue
+        partes = dl.split("/")
+        if len(partes) != 2:
+            continue
+        ano_dl = partes[1]
+        if ano_dl != ano_filtro:
+            continue
+
+        d = row_to_dict(row_i, r)
+        total_ano += 1
+        cat = d.get("categoria") or "Outro"
+        cat_count_ano[cat] = cat_count_ano.get(cat, 0) + 1
+        por_mes.setdefault(dl, []).append(d)
+
+    # Ordena meses desc (mais recente primeiro)
+    def _mes_key(m):
+        p = m.split("/")
+        return (int(p[1]), int(p[0]))
+
+    meses_ord = sorted(por_mes.keys(), key=_mes_key, reverse=True)
+
+    cat_fav = max(cat_count_ano.items(), key=lambda x: x[1]) if cat_count_ano else None
+
+    mes_atual_count = len(por_mes.get(mes_atual, []))
+    mes_ant_count   = len(por_mes.get(mesmo_mes_ano_ant, []))
+
+    anos = sorted(
+        {str(r[8]).split("/")[1] for _, r in rows
+         if len(r) > 8 and r[8] and "/" in str(r[8])},
+        reverse=True,
+    )
+
+    return {
+        "stats": {
+            "ano": ano_filtro,
+            "total_ano": total_ano,
+            "mes_atual": mes_atual,
+            "mes_atual_label": _label_mes(mes_atual),
+            "mes_atual_count": mes_atual_count,
+            "mesmo_mes_ano_ant": mesmo_mes_ano_ant,
+            "mesmo_mes_ano_ant_label": _label_mes(mesmo_mes_ano_ant),
+            "mesmo_mes_ano_ant_count": mes_ant_count,
+            "categoria_favorita": cat_fav[0] if cat_fav else None,
+            "categoria_favorita_count": cat_fav[1] if cat_fav else 0,
+            "categoria_favorita_pct": round(cat_fav[1] / total_ano * 100) if cat_fav and total_ano else 0,
+        },
+        "por_mes": [
+            {
+                "mes_ano": m,
+                "label": _label_mes(m),
+                "count": len(por_mes[m]),
+                "items": sorted(por_mes[m], key=lambda x: (x["titulo"], x["edicao"] or "")),
+            }
+            for m in meses_ord
+        ],
+        "anos_disponiveis": anos,
+    }
 
 
 app.mount("/static", StaticFiles(directory=os.path.join(_BASE_DIR, "static")), name="static")
