@@ -643,6 +643,9 @@ def historico(ano: str = ""):
     por_mes: dict = {}
     cat_count_ano: dict = {}
     total_ano = 0
+    # Contagens do comparativo (independentes do ano filtrado)
+    mes_atual_count = 0
+    mes_ant_count = 0
 
     for row_i, r in rows:
         dl = str(r[8]).strip() if len(r) > 8 and r[8] else ""
@@ -651,6 +654,13 @@ def historico(ano: str = ""):
         partes = dl.split("/")
         if len(partes) != 2:
             continue
+
+        # Comparativo mês atual × mesmo mês ano anterior (qualquer ano filtrado)
+        if dl == mes_atual:
+            mes_atual_count += 1
+        elif dl == mesmo_mes_ano_ant:
+            mes_ant_count += 1
+
         ano_dl = partes[1]
         if ano_dl != ano_filtro:
             continue
@@ -669,9 +679,6 @@ def historico(ano: str = ""):
     meses_ord = sorted(por_mes.keys(), key=_mes_key, reverse=True)
 
     cat_fav = max(cat_count_ano.items(), key=lambda x: x[1]) if cat_count_ano else None
-
-    mes_atual_count = len(por_mes.get(mes_atual, []))
-    mes_ant_count   = len(por_mes.get(mesmo_mes_ano_ant, []))
 
     anos = sorted(
         {str(r[8]).split("/")[1] for _, r in rows
