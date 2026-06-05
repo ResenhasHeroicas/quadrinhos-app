@@ -29,7 +29,7 @@ XLSX_PATH = os.environ.get("XLSX_PATH", os.path.join(_BASE_DIR, "quadrinhos.xlsx
 BACKUP_DIR = os.path.join(_BASE_DIR, "backups")
 SHEET_NAME = "QUADRINHOS"
 HEADER = ["TÍTULO", "EDIÇÃO", "EDITORA", "CATEGORIA", "LIDO", "OBS", "INCLUSAO", "VALOR", "DATA_LEITURA"]
-MESES_PT = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"]
+MESES_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"]
 
 def _label_mes(mes_ano):
     """'05/2026' → 'Mai/2026'"""
