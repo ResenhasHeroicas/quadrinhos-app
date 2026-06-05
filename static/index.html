@@ -42,7 +42,6 @@
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       /* Safe area para notch/Dynamic Island do iPhone */
-      padding-top: env(safe-area-inset-top);
       padding-bottom: env(safe-area-inset-bottom);
     }
     h1 { letter-spacing: -.02em; }
@@ -153,7 +152,7 @@
 </style>
 
 <!-- Header -->
-<header class="header-grad text-white shadow-lg">
+<header class="header-grad text-white shadow-lg" style="padding-top: env(safe-area-inset-top);">
   <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-2 flex-wrap">
     <div>
       <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Coleção de Quadrinhos</h1>
