@@ -157,7 +157,6 @@
   <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-2 flex-wrap">
     <div>
       <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Coleção de Quadrinhos</h1>
-      <div id="header-stats" class="flex gap-2 mt-1.5 flex-wrap"></div>
     </div>
     <div class="flex gap-1.5 flex-wrap justify-end">
       <button onclick="toggleDark()" id="btn-dark"
@@ -705,11 +704,7 @@ async function carregarSugestoes() {
 }
 
 async function carregarHeaderStats() {
-  const res = await fetch('/api/stats');
-  const s = await res.json();
-  const chip = (txt) => `<span class="bg-white bg-opacity-20 text-white text-xs font-semibold px-2.5 py-1 rounded-full">${txt}</span>`;
-  document.getElementById('header-stats').innerHTML =
-    chip(`📚 ${s.total} itens`) + chip(`✅ ${s.lidos} lidos`) + chip(`📖 ${s.nao_lidos} para ler`);
+  // Removido: informações já disponíveis na Dashboard
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────
