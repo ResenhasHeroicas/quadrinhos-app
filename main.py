@@ -451,7 +451,7 @@ def exportar():
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "QUADRINHOS"
-    widths = [50, 12, 20, 12, 8, 25, 14, 12]
+    widths = [50, 12, 20, 12, 8, 25, 14, 12, 14]
     for col, (h, w) in enumerate(zip(HEADER, widths), 1):
         cell = ws.cell(row=1, column=col, value=h)
         cell.font = Font(bold=True, color="FFFFFF")
@@ -459,7 +459,7 @@ def exportar():
         cell.alignment = Alignment(horizontal="center")
         ws.column_dimensions[get_column_letter(col)].width = w
     for row_i, (_, r) in enumerate(rows, 2):
-        for col, val in enumerate(r[:8], 1):
+        for col, val in enumerate(r[:9], 1):
             ws.cell(row=row_i, column=col, value=val)
     ws.freeze_panes = "A2"
 
@@ -539,24 +539,29 @@ def _row_for_sheets(values):
     return [_cell_to_str(values[i]) if i < len(values) else "" for i in range(9)]
 
 
-def _sync_to_sheets(action, row_index=None, values=None):
-    """Replica uma alteração no Google Sheets (best-effort).
+def _push_all_to_sheets():
+    """Reescreve TODO o Google Sheets a partir do Excel local (best-effort, background).
 
-    Roda em background: se falhar, apenas registra — o dado já está salvo no Excel
-    e o botão 'Enviar' pode reconciliar tudo depois.
+    Em vez de sincronizar por índice de linha (frágil: deletes deslocam as linhas e
+    qualquer falha best-effort dessincroniza Sheets×Excel), reescreve tudo de uma vez.
+    Assim o Sheets é sempre um espelho fiel do Excel após cada alteração.
     """
     try:
-        ws = _gsheet_ws()
+        ws_gs = _gsheet_ws()
+        rows = get_data_rows()
+        sheet_data = [HEADER]
+        for _, r in rows:
+            sheet_data.append(_row_for_sheets(r))
         with _gs_lock:
-            if action == "append":
-                ws.append_row(_row_for_sheets(values), value_input_option="USER_ENTERED")
-            elif action == "update" and row_index:
-                ws.update(f"A{row_index}:H{row_index}", [_row_for_sheets(values)],
-                          value_input_option="USER_ENTERED")
-            elif action == "delete" and row_index:
-                ws.delete_rows(row_index)
+            ws_gs.clear()
+            ws_gs.update(sheet_data, value_input_option="USER_ENTERED")
     except Exception as e:
-        print(f"[sheets-sync] falha ao {action} (linha {row_index}): {e}")
+        print(f"[sheets-sync] falha no push completo: {e}")
+
+
+def _sync_to_sheets(action=None, row_index=None, values=None):
+    """Compat: qualquer alteração dispara um push completo (evita drift por índice)."""
+    _push_all_to_sheets()
 
 
 def _pull_from_sheets():
