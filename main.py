@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Union
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
@@ -191,7 +191,7 @@ class Quadrinho(BaseModel):
     lido: Optional[bool] = False
     obs: Optional[str] = None
     inclusao: Optional[str] = None
-    valor: Optional[str] = None
+    valor: Optional[Union[str, float, int]] = None
     data_leitura: Optional[str] = None
 
 
