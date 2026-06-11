@@ -56,8 +56,15 @@
     .card-hover { transition: transform .15s ease, box-shadow .15s ease; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
     .chip { font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; display:inline-block; line-height:1.3; }
+    .hist-month-accent { width:4px; height:18px; border-radius:99px; flex-shrink:0; display:inline-block; background:linear-gradient(180deg,#6366f1,#a855f7); box-shadow:0 0 10px -2px rgba(129,140,248,.7); }
     .hist-count-chip { background:#e0e7ff; color:#4338ca; }
     body.dark .hist-count-chip { background:rgba(129,140,248,.22); color:#c7d2fe; }
+    .serie-info-box { background:#eef2ff; color:#4338ca; border:1px solid #e0e7ff; line-height:1.5; }
+    body.dark .serie-info-box { background:rgba(129,140,248,.12); color:#c7d2fe; border-color:rgba(129,140,248,.28); }
+    .btn-nova-edicao { background:#eef2ff; color:#4338ca; border:1px solid #c7d2fe; }
+    .btn-nova-edicao:hover { background:#e0e7ff; }
+    body.dark .btn-nova-edicao { background:rgba(129,140,248,.15); color:#c7d2fe; border-color:rgba(129,140,248,.4); }
+    body.dark .btn-nova-edicao:hover { background:rgba(129,140,248,.26); }
     .badge-hq { background:#ffedd5; color:#c2410c; }
     .badge-manga { background:#fce7f3; color:#9d174d; }
     .badge-livro { background:#d1fae5; color:#065f46; }
@@ -207,6 +214,8 @@
     .cover-manga{background:linear-gradient(135deg,#f472b6,#db2777)}
     .cover-livro{background:linear-gradient(135deg,#34d399,#059669)}
     .cover-outro{background:linear-gradient(135deg,#818cf8,#4f46e5)}
+    .cat-btn{box-shadow:0 6px 18px -8px rgba(0,0,0,.5);}
+    .cat-btn:hover{filter:brightness(1.08);transform:translateY(-1px);}
 
     /* ─── Barra de filtros (estilo mockup C) ─── */
     .filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; border-radius:14px; }
@@ -230,7 +239,7 @@
     .filter-bar select.pill option { background:#161a2b; color:#e8eaf2; }
   </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen dark">
 
 <!-- Splash Screen -->
 <div id="splash" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#4338ca 0%,#5b21b6 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.4s ease;">
@@ -258,16 +267,8 @@
         <h1 class="header-title">Coleção de Quadrinhos</h1>
       </div>
       <div class="flex gap-2 shrink-0">
-        <button onclick="toggleDark()" id="btn-dark" class="hbtn hbtn-ghost w-10 h-10 text-lg" title="Modo claro/escuro">🌙</button>
-        <button onclick="salvarSheets()" id="btn-salvar" class="hbtn hbtn-ghost w-10 h-10 text-lg disabled:opacity-60 disabled:cursor-wait" title="Salvar na nuvem">☁️</button>
-        <button onclick="carregarSheets()" id="btn-carregar" class="hbtn hbtn-ghost w-10 h-10 text-lg disabled:opacity-60 disabled:cursor-wait" title="Carregar da nuvem">🔄</button>
+        <button onclick="abrirSync()" id="btn-sync" class="hbtn hbtn-ghost px-3.5 h-10 text-sm gap-1.5 disabled:opacity-60 disabled:cursor-wait" title="Sincronizar com o Google"><span class="text-base">☁️</span><span>Sincronizar</span></button>
       </div>
-    </div>
-    <!-- stats -->
-    <div class="grid grid-cols-3 gap-3 mt-6">
-      <div class="hstat"><div class="hstat-num g1" id="h-total">—</div><div class="hstat-lbl">Itens na coleção</div></div>
-      <div class="hstat"><div class="hstat-num g2" id="h-lidos">—</div><div class="hstat-lbl">Já lidos</div></div>
-      <div class="hstat"><div class="hstat-num g3" id="h-gasto">—</div><div class="hstat-lbl">Investido</div></div>
     </div>
   </div>
 </header>
@@ -279,7 +280,7 @@
     <button onclick="setTab('historico')" id="tab-historico" class="seg-tab">Histórico</button>
     <button onclick="setTab('dashboard')" id="tab-dashboard" class="seg-tab">Dashboard</button>
   </div>
-  <button onclick="abrirModalAdd()" class="hbtn hbtn-primary px-4 py-2.5 shrink-0"><span class="text-lg leading-none">＋</span><span class="hidden sm:inline">Adicionar</span></button>
+  <button onclick="abrirModalAdd()" class="hbtn hbtn-primary px-4 py-2.5 shrink-0"><span class="text-lg leading-none">+</span><span>Adicionar</span></button>
 </div>
 
 <!-- ===== LISTA TAB ===== -->
@@ -314,18 +315,18 @@
   <!-- Filtros do dashboard -->
   <div class="bg-white rounded-xl shadow-sm p-4 mb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 items-center">
     <select id="d-editora" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-      <option value="TODOS">Todas as editoras</option>
+      <option value="TODOS">Editoras</option>
     </select>
     <select id="d-categoria" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-      <option value="TODOS">Todas as categorias</option>
+      <option value="TODOS">Categorias</option>
     </select>
     <select id="d-status" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-      <option value="TODOS">📖 Leitura: todos</option>
-      <option value="SIM">✅ Lidos</option>
-      <option value="NÃO">📕 Não lidos</option>
+      <option value="TODOS">Leitura</option>
+      <option value="SIM">Lidos</option>
+      <option value="NÃO">Não lidos</option>
     </select>
     <select id="d-periodo" onchange="carregarDashboard()" class="border rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-      <option value="TODOS">📅 Todo o período</option>
+      <option value="TODOS">Período</option>
     </select>
 
   </div>
@@ -359,7 +360,7 @@
   <!-- Barra de progresso de leitura -->
   <div class="bg-white rounded-xl shadow-sm p-4 mb-4">
     <div class="flex justify-between items-center mb-2 text-sm">
-      <span class="font-semibold text-gray-600">📈 Progresso de leitura</span>
+      <span class="font-semibold text-gray-600">Progresso de leitura</span>
       <span class="font-bold text-purple-600" id="d-pct">—</span>
     </div>
     <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
@@ -389,23 +390,23 @@
   <!-- Gráficos -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
     <div class="bg-white rounded-xl shadow-sm p-4">
-      <div class="text-sm font-semibold text-gray-600 mb-3">📚 Distribuição por Categoria</div>
+      <div class="text-sm font-semibold text-gray-600 mb-3">Distribuição por Categoria</div>
       <canvas id="chart-categorias" style="max-height:220px"></canvas>
     </div>
     <div class="bg-white rounded-xl shadow-sm p-4">
-      <div class="text-sm font-semibold text-gray-600 mb-3">📈 Crescimento da Coleção</div>
+      <div class="text-sm font-semibold text-gray-600 mb-3">Crescimento da Coleção</div>
       <canvas id="chart-evolucao" style="max-height:220px"></canvas>
     </div>
     <div class="bg-white rounded-xl shadow-sm p-4">
-      <div class="text-sm font-semibold text-gray-600 mb-3">💰 Gasto por Mês (R$)</div>
+      <div class="text-sm font-semibold text-gray-600 mb-3">Gasto por Mês (R$)</div>
       <canvas id="chart-gasto" style="max-height:220px"></canvas>
     </div>
     <div class="bg-white rounded-xl shadow-sm p-4">
-      <div class="text-sm font-semibold text-gray-600 mb-3">🏢 Ranking de Editoras</div>
+      <div class="text-sm font-semibold text-gray-600 mb-3">Ranking de Editoras</div>
       <canvas id="chart-editoras" style="max-height:220px"></canvas>
     </div>
     <div class="bg-white rounded-xl shadow-sm p-4 overflow-y-auto" style="max-height:300px">
-      <div class="text-sm font-semibold text-gray-600 mb-3">🏆 Ranking Completo</div>
+      <div class="text-sm font-semibold text-gray-600 mb-3">Ranking Completo</div>
       <div id="d-ranking" class="space-y-1"></div>
     </div>
   </div>
@@ -451,6 +452,27 @@
 <datalist id="dl-titulos"></datalist>
 <datalist id="dl-editoras"></datalist>
 
+<!-- MODAL SINCRONIZAR -->
+<div id="modal-sync" onclick="if(event.target===this)fecharSync()" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden px-4 cursor-pointer">
+  <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm modal-box cursor-default">
+    <div class="p-6">
+      <h3 class="text-base font-bold text-gray-800 mb-1">Sincronizar com o Google</h3>
+      <p class="text-sm text-gray-400 mb-5">O que você deseja fazer?</p>
+      <div class="flex flex-col gap-3">
+        <button id="sync-salvar" onclick="syncSalvar()"
+          class="w-full py-3 rounded-xl font-semibold text-white text-sm transition flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90 disabled:opacity-60 disabled:cursor-wait">
+          <span class="text-base">☁️</span> Salvar dados no Google
+        </button>
+        <button id="sync-carregar" onclick="syncCarregar()"
+          class="w-full py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 hbtn-ghost disabled:opacity-60 disabled:cursor-wait">
+          <span class="text-base">🔄</span> Carregar dados do Google
+        </button>
+        <button onclick="fecharSync()" class="w-full py-2.5 text-sm font-medium text-gray-400 hover:text-gray-600 transition">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ADICIONAR (wizard) -->
 <div id="modal-add" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden px-4 cursor-pointer">
   <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-y-auto modal-box cursor-default" style="max-height:90vh">
@@ -470,11 +492,11 @@
         <h3 class="text-base font-bold text-gray-800 mb-4">Escolha a categoria</h3>
         <div class="flex flex-col gap-3">
           <button onclick="wizardSelectCategoria('HQ')"
-            class="w-full py-3 rounded-xl font-semibold text-white bg-orange-500 hover:bg-orange-600 transition text-sm">📖 HQ</button>
+            class="cat-btn cover-hq w-full py-3 rounded-xl font-semibold text-white transition text-sm">HQ</button>
           <button onclick="wizardSelectCategoria('MANGÁ')"
-            class="w-full py-3 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition text-sm">🇯🇵 MANGÁ</button>
+            class="cat-btn cover-manga w-full py-3 rounded-xl font-semibold text-white transition text-sm">MANGÁ</button>
           <button onclick="wizardSelectCategoria('LIVRO')"
-            class="w-full py-3 rounded-xl font-semibold text-white bg-green-600 hover:bg-green-700 transition text-sm">📗 LIVRO</button>
+            class="cat-btn cover-livro w-full py-3 rounded-xl font-semibold text-white transition text-sm">LIVRO</button>
         </div>
         <button onclick="fecharModalAdd()" class="mt-4 w-full text-sm text-gray-400 hover:text-gray-600">Cancelar</button>
       </div>
@@ -608,10 +630,10 @@
           <button type="submit" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-semibold text-sm hover:bg-indigo-700 transition">Salvar</button>
           <button type="button" onclick="fecharModalEdit()" class="flex-1 border py-2 rounded-lg font-semibold text-sm text-gray-600 hover:bg-gray-50 transition">Cancelar</button>
         </div>
-        <div id="serie-info" class="hidden text-xs text-indigo-600 bg-indigo-50 rounded-lg px-3 py-2 whitespace-pre-line"></div>
+        <div id="serie-info" class="hidden text-xs serie-info-box rounded-lg px-3 py-2 whitespace-pre-line"></div>
         <div class="pt-1 flex gap-2">
           <button type="button" onclick="novaEdicaoDoModal()"
-            class="flex-1 border border-indigo-300 text-indigo-600 py-2 rounded-lg text-sm font-semibold hover:bg-indigo-50 transition">
+            class="flex-1 btn-nova-edicao py-2 rounded-lg text-sm font-semibold transition">
             + Nova edição
           </button>
           <button type="button" onclick="deletarDoModal()"
@@ -630,6 +652,12 @@ let currentPage = 1;
 let debounceTimer;
 let chartCat, chartEd, chartEv, chartGasto;
 const COLORS = ['#4f46e5','#7c3aed','#db2777','#ea580c','#16a34a','#0891b2','#ca8a04','#dc2626','#9333ea','#059669'];
+// Defaults p/ combinar com o tema escuro (sem contornos claros)
+if (window.Chart) {
+  Chart.defaults.color = '#9398b0';
+  Chart.defaults.borderColor = 'rgba(255,255,255,.06)';
+  Chart.defaults.scale.grid.color = 'rgba(255,255,255,.06)';
+}
 
 // estado do wizard
 let wiz = {};
@@ -772,6 +800,7 @@ async function carregarSugestoes() {
 }
 
 async function carregarHeaderStats() {
+  if (!document.getElementById('h-total')) return;
   try {
     const res = await fetch('/api/dashboard');
     const d = await res.json();
@@ -806,7 +835,7 @@ function labelPeriodo(k) {
 function popularPeriodos(meses) {
   const sel = document.getElementById('d-periodo');
   const atual = sel.value;
-  sel.innerHTML = '<option value="TODOS">📅 Todo o período</option>' +
+  sel.innerHTML = '<option value="TODOS">Período</option>' +
     meses.map(k => `<option value="${k}">${labelPeriodo(k)}</option>`).join('');
   if (atual && (atual === 'TODOS' || meses.includes(atual))) sel.value = atual;
 }
@@ -854,8 +883,8 @@ function renderDashboard(d) {
 
   chartCat = new Chart(document.getElementById('chart-categorias'), {
     type: 'doughnut',
-    data: { labels: Object.keys(d.categorias), datasets: [{ data: Object.values(d.categorias), backgroundColor: COLORS }] },
-    options: { plugins: { legend: { position: 'bottom' } } }
+    data: { labels: Object.keys(d.categorias), datasets: [{ data: Object.values(d.categorias), backgroundColor: COLORS, borderColor: 'rgba(10,11,20,0)', borderWidth: 0 }] },
+    options: { plugins: { legend: { position: 'bottom', labels: { color: '#b6bad0' } } } }
   });
 
   chartEd = new Chart(document.getElementById('chart-editoras'), {
@@ -1200,21 +1229,8 @@ async function sugerirLeitura() {
 document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) fecharModalAdd(); });
 document.getElementById('modal-edit').addEventListener('click', function(e) { if (e.target === this) fecharModalEdit(); });
 
-// ─── Modo escuro ─────────────────────────────────────────────────
-function toggleDark() {
-  const dark = document.body.classList.toggle('dark');
-  localStorage.setItem('dark', dark ? '1' : '0');
-  document.getElementById('btn-dark').textContent = dark ? '☀️' : '🌙';
-}
-// Reseta preferência de tema antiga uma única vez (novo design é dark por padrão)
-if (localStorage.getItem('theme_reset_v2') !== '1') {
-  localStorage.setItem('theme_reset_v2', '1');
-  localStorage.removeItem('dark');
-}
-if (localStorage.getItem('dark') !== '0') {
-  document.body.classList.add('dark');
-  document.getElementById('btn-dark').textContent = '☀️';
-}
+// ─── Tema fixo no modo escuro ────────────────────────────────────
+document.body.classList.add('dark');
 
 // ─── Atalhos de teclado ──────────────────────────────────────────
 document.addEventListener('keydown', function(e) {
@@ -1227,34 +1243,41 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// ─── Salvar dados do app na nuvem (Google Sheets) ────────────────
-async function salvarSheets() {
-  const btn = document.getElementById('btn-salvar');
-  const original = btn.textContent;
-  btn.textContent = '⏳ Salvando...';
-  btn.disabled = true;
+// ─── Sincronização com o Google Sheets ──────────────────────────
+function abrirSync() {
+  document.getElementById('modal-sync').classList.remove('hidden');
+}
+function fecharSync() {
+  document.getElementById('modal-sync').classList.add('hidden');
+}
+function syncBusy(estado) {
+  const btn = document.getElementById('btn-sync');
+  if (btn) btn.disabled = estado;
+  ['sync-salvar','sync-carregar'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.disabled = estado;
+  });
+}
+
+async function syncSalvar() {
+  syncBusy(true);
+  toast('⏳ Salvando no Google...');
   try {
     const res = await fetch('/api/sincronizar-sheets');
     const d = await res.json();
-    if (res.ok) {
-      toast(`✅ Salvo! ${d.mensagem}`);
-    } else {
-      toast('❌ Erro: ' + (d.detail || 'Falha ao salvar'));
-    }
+    if (res.ok) toast(`✅ Salvo! ${d.mensagem}`);
+    else toast('❌ Erro: ' + (d.detail || 'Falha ao salvar'));
   } catch (e) {
     toast('❌ Erro ao conectar com o servidor');
   } finally {
-    btn.textContent = original;
-    btn.disabled = false;
+    syncBusy(false);
+    fecharSync();
   }
 }
 
-// ─── Carregar dados da nuvem (Google Sheets) para o app ──────────
-async function carregarSheets() {
-  const btn = document.getElementById('btn-carregar');
-  const original = btn.textContent;
-  btn.textContent = '⏳ Carregando...';
-  btn.disabled = true;
+async function syncCarregar() {
+  syncBusy(true);
+  toast('⏳ Carregando do Google...');
   try {
     const res = await fetch('/api/puxar-sheets');
     const d = await res.json();
@@ -1269,8 +1292,8 @@ async function carregarSheets() {
   } catch (e) {
     toast('❌ Erro ao conectar com o servidor');
   } finally {
-    btn.textContent = original;
-    btn.disabled = false;
+    syncBusy(false);
+    fecharSync();
   }
 }
 
@@ -1326,9 +1349,9 @@ function renderHistorico(d) {
   timeline.innerHTML = d.por_mes.map(m => `
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">
       <div class="flex items-center justify-between px-4 py-3 border-b border-gray-50">
-        <div class="flex items-center gap-2">
-          <span class="text-base">✅</span>
-          <span class="font-semibold text-gray-700">${m.label}</span>
+        <div class="flex items-center gap-2.5">
+          <span class="hist-month-accent"></span>
+          <span class="font-semibold text-gray-700 uppercase tracking-wide text-[13px]">${m.label}</span>
         </div>
         <span class="chip hist-count-chip">${m.count} título${m.count !== 1 ? 's' : ''}</span>
       </div>
