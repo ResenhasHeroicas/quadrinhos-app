@@ -55,10 +55,24 @@
     .tab-active { border-bottom: 2px solid var(--brand); color: var(--brand); font-weight: 600; }
     .card-hover { transition: transform .15s ease, box-shadow .15s ease; }
     .card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .chip { font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; display:inline-block; line-height:1.3; }
+    .hist-count-chip { background:#e0e7ff; color:#4338ca; }
+    body.dark .hist-count-chip { background:rgba(129,140,248,.22); color:#c7d2fe; }
     .badge-hq { background:#ffedd5; color:#c2410c; }
     .badge-manga { background:#fce7f3; color:#9d174d; }
     .badge-livro { background:#d1fae5; color:#065f46; }
     .badge-outro { background:#f3f4f6; color:#374151; }
+    .badge-auto { background:#fef3c7; color:#b45309; }
+    .badge-lido { background:#dcfce7; color:#15803d; }
+    .badge-ler  { background:#f3f4f6; color:#6b7280; }
+    /* Chips translúcidos no tema escuro (estilo mockup C) */
+    body.dark .badge-hq    { background:rgba(249,115,22,.18); color:#fdba74; }
+    body.dark .badge-manga { background:rgba(236,72,153,.18); color:#f9a8d4; }
+    body.dark .badge-livro { background:rgba(16,185,129,.18); color:#6ee7b7; }
+    body.dark .badge-outro { background:rgba(148,163,184,.18); color:#cbd5e1; }
+    body.dark .badge-auto  { background:rgba(234,179,8,.2);   color:#fde047; }
+    body.dark .badge-lido  { background:rgba(16,185,129,.18); color:#6ee7b7; }
+    body.dark .badge-ler   { background:rgba(255,255,255,.08); color:#9398b0; }
 
     /* ─── Gradiente do header ─── */
     .header-grad { background: linear-gradient(135deg, var(--brand) 0%, #5b50d6 55%, #7c5cdb 100%); }
@@ -130,6 +144,90 @@
     body.dark .hover\:bg-indigo-50:hover { background:#312e81 !important; }
     body.dark .header-grad { background: linear-gradient(135deg, #312e81 0%, #4c3a8f 55%, #5b21b6 100%); }
     body.dark .pill-active { background:var(--brand-soft) !important; border-color:var(--brand) !important; color:#c7d2fe !important; }
+
+    /* ════════ DARK GLASS THEME (opção C) ════════ */
+    body.dark {
+      --bg: #0a0b14;
+      background-image:
+        radial-gradient(900px 440px at 8% -8%, rgba(99,102,241,.20), transparent),
+        radial-gradient(780px 440px at 100% 0%, rgba(168,85,247,.16), transparent);
+      background-attachment: fixed;
+    }
+    /* Superfícies de vidro */
+    body.dark .bg-white {
+      background: rgba(255,255,255,.05) !important;
+      border: 1px solid rgba(255,255,255,.08);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      box-shadow: 0 10px 32px -20px rgba(0,0,0,.8) !important;
+    }
+    body.dark .card-hover:hover { background: rgba(255,255,255,.08) !important; border-color: rgba(129,140,248,.4); }
+    body.dark .bg-gray-100 { background: rgba(255,255,255,.08) !important; }
+    /* Círculos de ícone (dashboard) — versões translúcidas p/ o dark */
+    body.dark .bg-indigo-100  { background: rgba(129,140,248,.18) !important; }
+    body.dark .bg-green-100, body.dark .bg-emerald-100 { background: rgba(16,185,129,.18) !important; }
+    body.dark .bg-blue-100    { background: rgba(59,130,246,.20) !important; }
+    body.dark .bg-purple-100  { background: rgba(168,85,247,.18) !important; }
+    body.dark .bg-amber-100, body.dark .bg-yellow-100 { background: rgba(234,179,8,.18) !important; }
+
+    /* ─── Header ─── */
+    .app-header { padding-top: env(safe-area-inset-top); }
+    .header-eyebrow { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.2em; color:var(--brand); opacity:.7; margin-bottom:6px; }
+    .header-title { font-size:27px; font-weight:800; letter-spacing:-.02em; line-height:1; color:var(--text); }
+    body.dark .header-title { background:linear-gradient(90deg,#ffffff,#c7d2fe); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .hbtn { border-radius:12px; font-weight:600; font-size:13px; transition:.15s; display:flex; align-items:center; justify-content:center; gap:6px; }
+    .hbtn-ghost { background:rgba(120,120,150,.12); color:var(--text-soft); border:1px solid var(--border); }
+    .hbtn-ghost:hover { background:rgba(120,120,150,.2); color:var(--text); }
+    body.dark .hbtn-ghost { background:rgba(255,255,255,.06); color:var(--text); border-color:rgba(255,255,255,.1); }
+    body.dark .hbtn-ghost:hover { background:rgba(255,255,255,.12); }
+    .hbtn-primary { background:var(--brand); color:#fff; box-shadow:0 8px 20px -8px rgba(67,56,202,.55); }
+    .hbtn-primary:hover { filter:brightness(.95); }
+    body.dark .hbtn-primary { background:linear-gradient(120deg,#6366f1,#a855f7); box-shadow:0 8px 22px -8px rgba(129,140,248,.7); }
+
+    /* ─── Cards de estatística do header ─── */
+    .hstat { border-radius:18px; padding:14px 16px; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow); }
+    body.dark .hstat { background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.08); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); box-shadow:none; }
+    .hstat-num { font-size:23px; font-weight:800; line-height:1; }
+    .hstat-num.g1{color:var(--brand)} .hstat-num.g2{color:#059669} .hstat-num.g3{color:#d97706}
+    body.dark .hstat-num.g1 { background:linear-gradient(90deg,#a5b4fc,#c4b5fd); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    body.dark .hstat-num.g2 { background:linear-gradient(90deg,#6ee7b7,#5eead4); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    body.dark .hstat-num.g3 { background:linear-gradient(90deg,#fcd34d,#fdba74); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .hstat-lbl { font-size:12px; color:#9398b0; margin-top:6px; font-weight:500; }
+
+    /* ─── Tabs segmentadas ─── */
+    .seg-bar { display:inline-flex; gap:2px; padding:4px; border-radius:13px; background:var(--bg); border:1px solid var(--border); }
+    body.dark .seg-bar { background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.08); }
+    .seg-tab { padding:8px 17px; border-radius:10px; font-size:13px; font-weight:600; color:#9398b0; border:none; background:none; cursor:pointer; transition:.15s; white-space:nowrap; }
+    .seg-tab:hover { color:var(--text); }
+    .seg-tab.active { background:var(--surface); color:var(--brand); box-shadow:var(--shadow); }
+    body.dark .seg-tab.active { background:linear-gradient(120deg,#6366f1,#a855f7); color:#fff; box-shadow:0 6px 16px -6px rgba(129,140,248,.7); }
+
+    /* ─── Mini-capa nos cards da lista ─── */
+    .mini-cover { width:48px; height:64px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:20px; flex-shrink:0; box-shadow:0 4px 12px -4px rgba(0,0,0,.45); }
+    .cover-hq{background:linear-gradient(135deg,#fb923c,#ea580c)}
+    .cover-manga{background:linear-gradient(135deg,#f472b6,#db2777)}
+    .cover-livro{background:linear-gradient(135deg,#34d399,#059669)}
+    .cover-outro{background:linear-gradient(135deg,#818cf8,#4f46e5)}
+
+    /* ─── Barra de filtros (estilo mockup C) ─── */
+    .filter-bar { display:flex; align-items:center; gap:8px; flex-wrap:wrap; border-radius:14px; }
+    .search-wrap { display:flex; align-items:center; gap:8px; flex:1 1 200px; min-width:200px; padding:10px 14px; border-radius:12px; background:var(--bg); border:1px solid var(--border); }
+    body.dark .search-wrap { background:rgba(0,0,0,.25); border-color:rgba(255,255,255,.08); }
+    #busca { background:transparent !important; border:none !important; box-shadow:none !important; padding:0 !important; width:100%; font-size:14px; }
+    #busca:focus { outline:none !important; box-shadow:none !important; border:none !important; }
+    .filter-bar select.pill {
+      -webkit-appearance:none; -moz-appearance:none; appearance:none;
+      width:118px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;
+      border-radius:11px; font-size:12.5px; font-weight:600;
+      padding:8px 30px 8px 13px; cursor:pointer;
+      color:#b6bad0; background-color:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b6bad0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+      background-repeat:no-repeat !important; background-position:right 11px center !important;
+    }
+    .filter-bar select.pill:hover { border-color:rgba(129,140,248,.5); color:#c7d2fe; }
+    .filter-bar select.pill.pill-active { background-color:rgba(129,140,248,.18); border-color:rgba(129,140,248,.5); color:#c7d2fe; }
+    body.dark .filter-bar select.pill { background-color:rgba(255,255,255,.05) !important; border-color:rgba(255,255,255,.08); color:#b6bad0; }
+    body.dark .filter-bar select.pill.pill-active { background-color:rgba(129,140,248,.18) !important; border-color:rgba(129,140,248,.5); color:#c7d2fe; }
+    .filter-bar select.pill option { background:#161a2b; color:#e8eaf2; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -152,78 +250,66 @@
 </style>
 
 <!-- Header -->
-<header class="header-grad text-white shadow-lg" style="padding-top: env(safe-area-inset-top);">
-  <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between gap-2 flex-wrap">
-    <div>
-      <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Coleção de Quadrinhos</h1>
+<header class="app-header">
+  <div class="max-w-4xl mx-auto px-6 pt-8 pb-4">
+    <div class="flex items-start justify-between gap-3">
+      <div class="min-w-0">
+        <p class="header-eyebrow">Minha biblioteca</p>
+        <h1 class="header-title">Coleção de Quadrinhos</h1>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <button onclick="toggleDark()" id="btn-dark" class="hbtn hbtn-ghost w-10 h-10 text-lg" title="Modo claro/escuro">🌙</button>
+        <button onclick="salvarSheets()" id="btn-salvar" class="hbtn hbtn-ghost w-10 h-10 text-lg disabled:opacity-60 disabled:cursor-wait" title="Salvar na nuvem">☁️</button>
+        <button onclick="carregarSheets()" id="btn-carregar" class="hbtn hbtn-ghost w-10 h-10 text-lg disabled:opacity-60 disabled:cursor-wait" title="Carregar da nuvem">🔄</button>
+      </div>
     </div>
-    <div class="flex gap-1.5 flex-wrap justify-end">
-      <button onclick="toggleDark()" id="btn-dark"
-        class="bg-white bg-opacity-20 text-white px-2.5 py-1.5 rounded-lg text-sm font-semibold hover:bg-opacity-30 transition" title="Modo escuro">
-        🌙
-      </button>
-      <button onclick="salvarSheets()" id="btn-salvar"
-        class="bg-white bg-opacity-20 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-opacity-30 transition disabled:opacity-60 disabled:cursor-wait" title="Salvar na nuvem">
-        ☁️ Salvar
-      </button>
-      <button onclick="carregarSheets()" id="btn-carregar"
-        class="bg-white bg-opacity-20 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-semibold hover:bg-opacity-30 transition disabled:opacity-60 disabled:cursor-wait" title="Carregar da nuvem">
-        🔄 Carregar
-      </button>
-      <button onclick="abrirModalAdd()"
-        class="bg-white text-indigo-700 px-3 py-1.5 rounded-lg font-semibold text-sm hover:bg-indigo-50 transition">
-        + Novo
-      </button>
+    <!-- stats -->
+    <div class="grid grid-cols-3 gap-3 mt-6">
+      <div class="hstat"><div class="hstat-num g1" id="h-total">—</div><div class="hstat-lbl">Itens na coleção</div></div>
+      <div class="hstat"><div class="hstat-num g2" id="h-lidos">—</div><div class="hstat-lbl">Já lidos</div></div>
+      <div class="hstat"><div class="hstat-num g3" id="h-gasto">—</div><div class="hstat-lbl">Investido</div></div>
     </div>
   </div>
 </header>
 
 <!-- Tabs -->
-<div class="bg-white border-b shadow-sm">
-  <div class="max-w-6xl mx-auto px-4 flex gap-6">
-    <button onclick="setTab('lista')" id="tab-lista" class="py-3 text-sm tab-active">Minha Coleção</button>
-    <button onclick="setTab('historico')" id="tab-historico" class="py-3 text-sm text-gray-500 hover:text-gray-700">Histórico</button>
-    <button onclick="setTab('dashboard')" id="tab-dashboard" class="py-3 text-sm text-gray-500 hover:text-gray-700">Dashboard</button>
+<div class="max-w-4xl mx-auto px-6 mt-7 mb-5 flex items-center justify-between gap-3">
+  <div class="seg-bar">
+    <button onclick="setTab('lista')" id="tab-lista" class="seg-tab active">Coleção</button>
+    <button onclick="setTab('historico')" id="tab-historico" class="seg-tab">Histórico</button>
+    <button onclick="setTab('dashboard')" id="tab-dashboard" class="seg-tab">Dashboard</button>
   </div>
+  <button onclick="abrirModalAdd()" class="hbtn hbtn-primary px-4 py-2.5 shrink-0"><span class="text-lg leading-none">＋</span><span class="hidden sm:inline">Adicionar</span></button>
 </div>
 
 <!-- ===== LISTA TAB ===== -->
-<div id="tab-lista-content" class="max-w-6xl mx-auto px-4 py-4">
-  <div class="bg-white rounded-xl shadow-sm p-4 mb-4 space-y-3">
-    <input id="busca" type="text" placeholder="🔍  Buscar por título, editora..."
-      class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
-      oninput="debounceBusca()">
-    <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-      <select id="filtro-categoria" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-        <option value="">Todas as categorias</option>
-      </select>
-      <select id="filtro-editora" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-        <option value="">Todas as editoras</option>
-      </select>
-      <select id="filtro-lido" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-        <option value="">📖 Leitura: todos</option>
-        <option value="sim">✅ Lidos</option>
-        <option value="nao">📕 Não lidos</option>
-      </select>
-      <select id="ordenar" onchange="buscar()" class="pill border px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-300 w-full sm:w-auto min-w-0">
-        <option value="">Ordem A-Z</option>
-        <option value="recentes">Mais recentes</option>
-        <option value="nao_lidos">Não lidos primeiro</option>
-      </select>
-      <button id="btn-autografado" onclick="toggleAutografado()"
-        class="pill border px-3 py-2 text-sm font-medium text-gray-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-600 transition col-span-1">
-        ★ Autografados
-      </button>
-      <button onclick="limparFiltros()" class="text-sm text-indigo-600 hover:underline px-2 col-span-1">Limpar</button>
+<div id="tab-lista-content" class="max-w-4xl mx-auto px-6 pb-10">
+  <div class="bg-white shadow-sm p-3 mb-5 filter-bar">
+    <div class="search-wrap">
+      <span class="text-[#7a7f99]">🔍</span>
+      <input id="busca" type="text" placeholder="Buscar por título, editora..."
+        class="focus:outline-none" oninput="debounceBusca()">
     </div>
+    <select id="filtro-categoria" onchange="buscar()" class="pill min-w-0">
+      <option value="">Categoria</option>
+    </select>
+    <select id="ordenar" onchange="buscar()" class="pill min-w-0">
+      <option value="">Ordenar</option>
+      <option value="recentes">Mais recentes</option>
+      <option value="nao_lidos">Não lidos primeiro</option>
+      <option value="f_lidos">Apenas lidos</option>
+      <option value="f_nao_lidos">Apenas não lidos</option>
+      <option value="f_autografados">Apenas autografados</option>
+    </select>
+    <button onclick="limparFiltros()" class="text-sm text-indigo-600 hover:underline px-2">Limpar</button>
   </div>
-  <p id="contagem" class="text-sm text-gray-500 mb-3"></p>
-  <div id="lista" class="space-y-2"></div>
+  <p id="contagem" class="text-[13px] text-[#9398b0] font-medium mb-3 px-1"></p>
+  <div id="lista" class="space-y-3"></div>
   <div id="paginacao" class="flex justify-center gap-2 mt-6"></div>
 </div>
 
 <!-- ===== DASHBOARD TAB ===== -->
-<div id="tab-dashboard-content" class="max-w-6xl mx-auto px-4 py-4 hidden">
+<div id="tab-dashboard-content" class="max-w-4xl mx-auto px-6 py-4 hidden">
 
   <!-- Filtros do dashboard -->
   <div class="bg-white rounded-xl shadow-sm p-4 mb-4 grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 items-center">
@@ -326,7 +412,7 @@
 </div>
 
 <!-- ===== HISTÓRICO TAB ===== -->
-<div id="tab-historico-content" class="max-w-6xl mx-auto px-4 py-4 hidden">
+<div id="tab-historico-content" class="max-w-4xl mx-auto px-6 py-4 hidden">
 
   <!-- Filtro de ano -->
   <div class="flex items-center gap-3 mb-4">
@@ -553,14 +639,10 @@ let _editorasList = [];
 function setTab(tab) {
   ['lista','dashboard','historico'].forEach(t => {
     document.getElementById(`tab-${t}-content`).classList.add('hidden');
-    const btn = document.getElementById(`tab-${t}`);
-    btn.classList.remove('tab-active');
-    btn.classList.add('text-gray-500');
+    document.getElementById(`tab-${t}`).classList.remove('active');
   });
   document.getElementById(`tab-${tab}-content`).classList.remove('hidden');
-  const activeBtn = document.getElementById(`tab-${tab}`);
-  activeBtn.classList.add('tab-active');
-  activeBtn.classList.remove('text-gray-500');
+  document.getElementById(`tab-${tab}`).classList.add('active');
   if (tab === 'dashboard') carregarDashboard();
   if (tab === 'historico') carregarHistorico();
 }
@@ -574,29 +656,7 @@ function debounceBusca() {
 function limparFiltros() {
   document.getElementById('busca').value = '';
   document.getElementById('filtro-categoria').value = '';
-  document.getElementById('filtro-editora').value = '';
-  document.getElementById('filtro-lido').value = '';
   document.getElementById('ordenar').value = '';
-  filtroAutografado = false;
-  const btn = document.getElementById('btn-autografado');
-  btn.classList.remove('bg-amber-50', 'border-amber-400', 'text-amber-600');
-  btn.classList.add('text-gray-600');
-  currentPage = 1;
-  buscar();
-}
-
-let filtroAutografado = false;
-
-function toggleAutografado() {
-  filtroAutografado = !filtroAutografado;
-  const btn = document.getElementById('btn-autografado');
-  if (filtroAutografado) {
-    btn.classList.add('bg-amber-50', 'border-amber-400', 'text-amber-600');
-    btn.classList.remove('text-gray-600');
-  } else {
-    btn.classList.remove('bg-amber-50', 'border-amber-400', 'text-amber-600');
-    btn.classList.add('text-gray-600');
-  }
   currentPage = 1;
   buscar();
 }
@@ -604,11 +664,14 @@ function toggleAutografado() {
 async function buscar() {
   const busca = document.getElementById('busca').value;
   const categoria = document.getElementById('filtro-categoria').value;
-  const editora = document.getElementById('filtro-editora').value;
-  const lido = document.getElementById('filtro-lido').value;
-  const ordenar = document.getElementById('ordenar').value;
-  const autografado = filtroAutografado ? 'sim' : '';
-  const params = new URLSearchParams({ busca, categoria, editora, lido, autografado, ordenar, page: currentPage, per_page: 50 });
+  const ord = document.getElementById('ordenar').value;
+  // O "Ordenar" também acumula filtros de leitura/autografado
+  let lido = '', autografado = '', ordenar = '';
+  if (ord === 'f_lidos') lido = 'sim';
+  else if (ord === 'f_nao_lidos') lido = 'nao';
+  else if (ord === 'f_autografados') autografado = 'sim';
+  else ordenar = ord;
+  const params = new URLSearchParams({ busca, categoria, editora: '', lido, autografado, ordenar, page: currentPage, per_page: 50 });
   const res = await fetch(`/api/quadrinhos?${params}`);
   const data = await res.json();
   renderLista(data);
@@ -616,7 +679,7 @@ async function buscar() {
 }
 
 function atualizarPills() {
-  ['filtro-categoria','filtro-editora','filtro-lido','ordenar'].forEach(id => {
+  ['filtro-categoria','ordenar'].forEach(id => {
     const el = document.getElementById(id);
     el.classList.toggle('pill-active', !!el.value);
   });
@@ -631,7 +694,7 @@ function catKey(cat) {
 }
 
 function badgeCategoria(cat) {
-  return `<span class="text-xs font-semibold px-2 py-0.5 rounded-full badge-${catKey(cat)}">${cat || '—'}</span>`;
+  return `<span class="chip badge-${catKey(cat)}">${cat || '—'}</span>`;
 }
 
 function renderLista(data) {
@@ -647,24 +710,32 @@ function renderLista(data) {
     document.getElementById('paginacao').innerHTML = '';
     return;
   }
-  lista.innerHTML = data.items.map((q, i) => `
-    <div class="bg-white rounded-xl shadow-sm p-4 card-hover anim-card cursor-pointer stripe-${catKey(q.categoria)}"
-      style="animation-delay:${Math.min(i * 18, 360)}ms" onclick="editarItem(${q.id})">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="font-semibold text-gray-800 text-sm">${q.titulo}</span>
-        ${q.edicao ? `<span class="text-xs text-gray-400">#${q.edicao}</span>` : ''}
-        ${badgeCategoria(q.categoria)}
-        <span class="ml-auto cursor-pointer select-none text-xs font-semibold px-2 py-0.5 rounded-full ${q.lido ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}"
-          title="${q.lido ? 'Marcar como não lido' : 'Marcar como lido'}"
-          onclick="event.stopPropagation(); toggleLido(${q.id}, ${q.lido})">${q.lido ? '✅ Lido' : '📖 Ler'}</span>
+  lista.innerHTML = data.items.map((q, i) => {
+    const ck = catKey(q.categoria);
+    const inicial = (q.titulo || '?').trim().charAt(0).toUpperCase();
+    const autografado = q.obs && q.obs.toLowerCase().includes('autograf');
+    const valorFmt = q.valor != null ? 'R$ ' + q.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : null;
+    return `
+    <div class="bg-white shadow-sm p-4 card-hover anim-card cursor-pointer flex items-center gap-4"
+      style="animation-delay:${Math.min(i * 18, 360)}ms; border-radius:18px;" onclick="editarItem(${q.id})">
+      <div class="mini-cover cover-${ck}">${inicial}</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <h3 class="font-bold text-[15px] truncate text-gray-800">${q.titulo}</h3>
+          ${q.edicao ? `<span class="text-[12px] text-[#7a7f99] font-semibold shrink-0">#${q.edicao}</span>` : ''}
+          ${autografado ? `<span class="chip badge-auto shrink-0">★ Autografado</span>` : ''}
+        </div>
+        <div class="flex items-center gap-2.5 mt-1.5 text-[12.5px] text-[#9398b0]">
+          ${badgeCategoria(q.categoria)}
+          ${q.editora ? `<span class="truncate">${q.editora}</span>` : ''}
+          ${valorFmt ? `<span class="text-[#4a4f66]">•</span><span class="font-semibold text-emerald-400">${valorFmt}</span>` : ''}
+        </div>
       </div>
-      <div class="text-xs text-gray-400 mt-1.5 flex gap-3 flex-wrap items-center">
-        ${q.editora ? `<span>🏢 ${q.editora}</span>` : ''}
-        ${q.obs ? `<span class="text-amber-600">★ ${q.obs}</span>` : ''}
-        ${q.inclusao ? `<span>📅 ${q.inclusao}</span>` : ''}
-      </div>
+      <button class="chip shrink-0 cursor-pointer select-none ${q.lido ? 'badge-lido' : 'badge-ler'} transition"
+        title="${q.lido ? 'Marcar como não lido' : 'Marcar como lido'}"
+        onclick="event.stopPropagation(); toggleLido(${q.id}, ${q.lido})">${q.lido ? '✓ Lido' : 'Ler'}</button>
     </div>
-  `).join('');
+  `}).join('');
 
   const totalPages = Math.ceil(data.total / data.per_page);
   const pag = document.getElementById('paginacao');
@@ -684,8 +755,6 @@ async function carregarFiltros() {
   const data = await res.json();
   const selCat = document.getElementById('filtro-categoria');
   data.categorias.forEach(c => { if(c.nome) selCat.innerHTML += `<option value="${c.nome}">${c.nome} (${c.count})</option>`; });
-  const selEd = document.getElementById('filtro-editora');
-  data.editoras.forEach(e => { if(e.nome) selEd.innerHTML += `<option value="${e.nome}">${e.nome} (${e.count})</option>`; });
   const dEd = document.getElementById('d-editora');
   data.editoras.forEach(e => { if(e.nome) dEd.innerHTML += `<option value="${e.nome}">${e.nome}</option>`; });
   const dCat = document.getElementById('d-categoria');
@@ -703,7 +772,17 @@ async function carregarSugestoes() {
 }
 
 async function carregarHeaderStats() {
-  // Removido: informações já disponíveis na Dashboard
+  try {
+    const res = await fetch('/api/dashboard');
+    const d = await res.json();
+    document.getElementById('h-total').textContent = d.total ?? '—';
+    const pct = d.total ? Math.round((d.lidos / d.total) * 100) : 0;
+    document.getElementById('h-lidos').textContent = pct + '%';
+    const g = d.total_gasto || 0;
+    document.getElementById('h-gasto').textContent = g >= 1000
+      ? 'R$ ' + (g / 1000).toFixed(1).replace('.', ',') + 'k'
+      : (g).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  } catch (_) {}
 }
 
 // ─── Dashboard ───────────────────────────────────────────────────
@@ -1127,7 +1206,12 @@ function toggleDark() {
   localStorage.setItem('dark', dark ? '1' : '0');
   document.getElementById('btn-dark').textContent = dark ? '☀️' : '🌙';
 }
-if (localStorage.getItem('dark') === '1') {
+// Reseta preferência de tema antiga uma única vez (novo design é dark por padrão)
+if (localStorage.getItem('theme_reset_v2') !== '1') {
+  localStorage.setItem('theme_reset_v2', '1');
+  localStorage.removeItem('dark');
+}
+if (localStorage.getItem('dark') !== '0') {
   document.body.classList.add('dark');
   document.getElementById('btn-dark').textContent = '☀️';
 }
@@ -1246,7 +1330,7 @@ function renderHistorico(d) {
           <span class="text-base">✅</span>
           <span class="font-semibold text-gray-700">${m.label}</span>
         </div>
-        <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">${m.count} título${m.count !== 1 ? 's' : ''}</span>
+        <span class="chip hist-count-chip">${m.count} título${m.count !== 1 ? 's' : ''}</span>
       </div>
       <div class="px-4 py-3 space-y-1.5">
         ${m.items.map(it => `
