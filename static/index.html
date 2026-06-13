@@ -209,9 +209,10 @@
     body.dark .seg-tab.active { background:linear-gradient(120deg,#6366f1,#a855f7); color:#fff; box-shadow:0 6px 16px -6px rgba(129,140,248,.7); }
     html, body { overflow-x:hidden; max-width:100%; }
     @media (max-width:440px){
-      .seg-tab { padding:8px 11px; font-size:12px; }
-      .hbtn-primary { padding-left:12px; padding-right:12px; }
-      .tabs-row { padding-left:14px; padding-right:14px; gap:8px; }
+      .tabs-row { flex-direction:column; align-items:stretch; gap:10px; }
+      .seg-bar { display:flex; width:100%; }
+      .seg-tab { flex:1; text-align:center; padding:9px 6px; font-size:12.5px; }
+      .tabs-row .hbtn-primary { width:100%; }
     }
 
     /* ─── Mini-capa nos cards da lista ─── */
