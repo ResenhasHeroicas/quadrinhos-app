@@ -209,10 +209,8 @@
     body.dark .seg-tab.active { background:linear-gradient(120deg,#6366f1,#a855f7); color:#fff; box-shadow:0 6px 16px -6px rgba(129,140,248,.7); }
     html, body { overflow-x:hidden; max-width:100%; }
     @media (max-width:440px){
-      .tabs-row { flex-direction:column; align-items:stretch; gap:10px; }
       .seg-bar { display:flex; width:100%; }
       .seg-tab { flex:1; text-align:center; padding:9px 6px; font-size:12.5px; }
-      .tabs-row .hbtn-primary { width:100%; }
     }
 
     /* ─── Mini-capa nos cards da lista ─── */
@@ -287,21 +285,21 @@
         <p class="header-eyebrow">Minha biblioteca</p>
         <h1 class="header-title">Coleção de Quadrinhos</h1>
       </div>
-      <div class="flex gap-2 shrink-0">
-        <button onclick="abrirSync()" id="btn-sync" class="hbtn hbtn-ghost px-3.5 h-10 text-sm gap-1.5 disabled:opacity-60 disabled:cursor-wait" title="Sincronizar com o Google"><span class="text-base">☁️</span><span>Sincronizar</span></button>
+      <div class="flex flex-col items-stretch gap-2 shrink-0">
+        <button onclick="abrirSync()" id="btn-sync" class="hbtn hbtn-ghost w-full h-10 px-3.5 text-sm gap-1.5 disabled:opacity-60 disabled:cursor-wait" title="Sincronizar com o Google"><span class="text-base">☁️</span><span>Sincronizar</span></button>
+        <button onclick="abrirModalAdd()" class="hbtn hbtn-primary w-full h-10 px-3.5 text-sm gap-1.5"><span class="text-lg leading-none">+</span><span>Adicionar</span></button>
       </div>
     </div>
   </div>
 </header>
 
 <!-- Tabs -->
-<div class="tabs-row max-w-4xl mx-auto px-6 mt-7 mb-5 flex items-center justify-between gap-3">
+<div class="tabs-row max-w-4xl mx-auto px-6 mt-7 mb-5 flex items-center gap-3">
   <div class="seg-bar">
     <button onclick="setTab('lista')" id="tab-lista" class="seg-tab active">Coleção</button>
     <button onclick="setTab('historico')" id="tab-historico" class="seg-tab">Histórico</button>
     <button onclick="setTab('dashboard')" id="tab-dashboard" class="seg-tab">Dashboard</button>
   </div>
-  <button onclick="abrirModalAdd()" class="hbtn hbtn-primary px-4 py-2.5 shrink-0"><span class="text-lg leading-none">+</span><span>Adicionar</span></button>
 </div>
 
 <!-- ===== LISTA TAB ===== -->
