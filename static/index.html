@@ -215,6 +215,9 @@
 
     /* ─── Mini-capa nos cards da lista ─── */
     .mini-cover { width:48px; height:64px; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; font-size:20px; flex-shrink:0; box-shadow:0 4px 12px -4px rgba(0,0,0,.45); }
+    .cover-spiderman { background: linear-gradient(135deg, #cc0000, #8b0000); }
+    .cover-batman { background: linear-gradient(135deg, #f5c400, #c49a00); }
+    .cover-pipoca { background: linear-gradient(135deg, #f97316, #c2410c); }
     .cover-hq{background:linear-gradient(135deg,#fb923c,#ea580c)}
     .cover-manga{background:linear-gradient(135deg,#f472b6,#db2777)}
     .cover-livro{background:linear-gradient(135deg,#34d399,#059669)}
@@ -289,7 +292,10 @@
         <h1 class="header-title">Coleção de Quadrinhos</h1>
       </div>
       <div class="flex flex-col items-stretch gap-2 shrink-0">
-        <button onclick="abrirSync()" id="btn-sync" class="hbtn hbtn-ghost w-full h-10 px-3.5 text-sm gap-1.5 disabled:opacity-60 disabled:cursor-wait" title="Sincronizar com o Google"><span class="text-base">☁️</span><span>Sincronizar</span></button>
+        <div class="flex gap-2">
+          <button onclick="abrirSync()" id="btn-sync" class="hbtn hbtn-ghost h-10 px-3.5 text-sm gap-1.5 disabled:opacity-60 disabled:cursor-wait" title="Sincronizar com o Google"><span class="text-base">☁️</span><span>Sincronizar</span></button>
+          <button onclick="logout()" class="hbtn hbtn-ghost h-10 px-3 text-sm" title="Sair">🔒</button>
+        </div>
         <button onclick="abrirModalAdd()" class="hbtn hbtn-primary w-full h-10 px-3.5 text-sm gap-1.5"><span class="text-lg leading-none">+</span><span>Adicionar</span></button>
       </div>
     </div>
@@ -473,6 +479,27 @@
 <!-- datalists globais -->
 <datalist id="dl-titulos"></datalist>
 <datalist id="dl-editoras"></datalist>
+
+<!-- MODAL LOGIN (bloqueante) -->
+<div id="modal-login" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100] px-4" style="backdrop-filter:blur(6px)">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xs cursor-default overflow-hidden">
+    <div class="bg-gradient-to-br from-indigo-600 to-purple-600 px-6 py-7 text-center">
+      <div class="text-5xl mb-2">📚</div>
+      <h1 class="text-white text-xl font-bold">Coleção de Quadrinhos</h1>
+      <p class="text-indigo-200 text-sm mt-1">Minha biblioteca</p>
+    </div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Senha de acesso</label>
+        <input id="login-senha" type="password" placeholder="Digite sua senha" autocomplete="current-password"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          onkeydown="if(event.key==='Enter')tentarLogin()">
+        <p id="login-erro" class="text-red-500 text-xs mt-1.5 hidden">Senha incorreta. Tente novamente.</p>
+      </div>
+      <button onclick="tentarLogin()" class="hbtn hbtn-primary w-full h-11 text-sm font-semibold">Entrar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL SINCRONIZAR -->
 <div id="modal-sync" onclick="if(event.target===this)fecharSync()" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden px-4 cursor-pointer">
@@ -683,6 +710,60 @@ if (window.Chart) {
   Chart.defaults.scale.grid.color = 'rgba(255,255,255,.06)';
 }
 
+// ─── Autenticação ────────────────────────────────────────────────
+function getApiKey() { return sessionStorage.getItem('api_key') || ''; }
+
+async function fetchProtegido(url, opts = {}) {
+  opts.headers = { ...(opts.headers || {}), 'X-API-Key': getApiKey() };
+  const res = await fetch(url, opts);
+  if (res.status === 401) {
+    exibirLogin();
+    throw new Error('Não autorizado');
+  }
+  return res;
+}
+
+function exibirLogin() {
+  sessionStorage.removeItem('api_key');
+  document.getElementById('modal-login').classList.remove('hidden');
+  setTimeout(() => document.getElementById('login-senha').focus(), 100);
+}
+
+function logout() {
+  sessionStorage.removeItem('api_key');
+  document.getElementById('login-senha').value = '';
+  document.getElementById('login-erro').classList.add('hidden');
+  document.getElementById('modal-login').classList.remove('hidden');
+  setTimeout(() => document.getElementById('login-senha').focus(), 100);
+}
+
+async function tentarLogin() {
+  const senha = document.getElementById('login-senha').value;
+  const erroEl = document.getElementById('login-erro');
+  erroEl.classList.add('hidden');
+  const res = await fetch('/api/verificar', { headers: { 'X-API-Key': senha } });
+  if (res.ok) {
+    sessionStorage.setItem('api_key', senha);
+    document.getElementById('modal-login').classList.add('hidden');
+    document.getElementById('login-senha').value = '';
+    iniciarApp();
+    toast('⏳ Carregando dados do Google Sheets...');
+    fetch('/api/puxar-sheets', { headers: { 'X-API-Key': senha } })
+      .then(r => r.json())
+      .then(d => { toast(`✅ ${d.mensagem}`); buscar(); carregarHeaderStats(); carregarFiltros(); })
+      .catch(() => { buscar(); carregarHeaderStats(); carregarFiltros(); });
+  } else {
+    erroEl.classList.remove('hidden');
+    document.getElementById('login-senha').select();
+  }
+}
+
+function iniciarApp() {
+  carregarHeaderStats();
+  carregarFiltros();
+  carregarSugestoes();
+}
+
 // estado do wizard
 let wiz = {};
 let _editorasList = [];
@@ -762,15 +843,25 @@ function renderLista(data) {
     document.getElementById('paginacao').innerHTML = '';
     return;
   }
+  const SPIDER_SVG = `<img src="/static/spiderman.png" style="width:44px;height:60px;object-fit:contain;filter:brightness(0) invert(1);padding:2px;">`;
+  const BATMAN_SVG = `<img src="/static/batman.png" style="width:44px;height:60px;object-fit:contain;filter:brightness(0);padding:4px;">`;
+  const PIPOCA_SVG = `<img src="/static/pipoca.png" style="width:44px;height:60px;object-fit:contain;filter:brightness(0) invert(1);padding:4px;">`;
+
   lista.innerHTML = data.items.map((q, i) => {
     const ck = catKey(q.categoria);
+    const titulo = (q.titulo || '').toLowerCase();
+    const isSpiderman = titulo.includes('homem-aranha') || titulo.includes('homem aranha') || titulo.includes('spider-man') || titulo.includes('spiderman');
+    const isBatman = titulo.includes('batman');
+    const isPipoca = (q.editora || '').toLowerCase().includes('pipoca');
+    const coverClass = isSpiderman ? 'cover-spiderman' : isBatman ? 'cover-batman' : isPipoca ? 'cover-pipoca' : `cover-${ck}`;
+    const coverContent = isSpiderman ? SPIDER_SVG : isBatman ? BATMAN_SVG : isPipoca ? PIPOCA_SVG : (q.titulo || '?').trim().charAt(0).toUpperCase();
     const inicial = (q.titulo || '?').trim().charAt(0).toUpperCase();
     const autografado = q.obs && q.obs.toLowerCase().includes('autograf');
     const valorFmt = q.valor != null ? 'R$ ' + q.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : null;
     return `
     <div class="bg-white shadow-sm p-4 card-hover anim-card cursor-pointer flex items-center gap-4"
       style="animation-delay:${Math.min(i * 18, 360)}ms; border-radius:18px;" onclick="editarItem(${q.id})">
-      <div class="mini-cover cover-${ck}">${inicial}</div>
+      <div class="mini-cover ${coverClass}">${coverContent}</div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
           <h3 class="font-bold text-[15px] truncate text-gray-800">${q.titulo}</h3>
@@ -1059,7 +1150,7 @@ async function wizardFinalizar() {
   }
 
   for (const ed of edicoes) {
-    await fetch('/api/quadrinhos', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
+    await fetchProtegido('/api/quadrinhos', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({
       titulo: wiz.titulo,
       edicao: ed || null,
       editora: wiz.editora || null,
@@ -1173,7 +1264,7 @@ async function salvar(e) {
     valor: document.getElementById('f-valor').value || null,
     lido: document.getElementById('f-lido').checked,
   };
-  await fetch(`/api/quadrinhos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  await fetchProtegido(`/api/quadrinhos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
   fecharModalEdit();
   buscar();
   carregarHeaderStats();
@@ -1183,7 +1274,7 @@ async function salvar(e) {
 async function toggleLido(id, lidoAtual) {
   const item = await fetch(`/api/quadrinhos/${id}`).then(r => r.json());
   item.lido = !lidoAtual;
-  await fetch(`/api/quadrinhos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(item) });
+  await fetchProtegido(`/api/quadrinhos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(item) });
   buscar();
   carregarHeaderStats();
   toast(item.lido ? '✅ Marcado como lido' : '📖 Marcado como não lido');
@@ -1234,7 +1325,7 @@ async function deletarDoModal() {
   const id = document.getElementById('edit-id').value;
   const titulo = document.getElementById('f-titulo').value;
   if (!confirm(`Remover "${titulo}"?\n\nEsta ação não pode ser desfeita.`)) return;
-  await fetch(`/api/quadrinhos/${id}`, { method: 'DELETE' });
+  await fetchProtegido(`/api/quadrinhos/${id}`, { method: 'DELETE' });
   fecharModalEdit();
   buscar();
   carregarHeaderStats();
@@ -1259,6 +1350,7 @@ document.body.classList.add('dark');
 // ─── Atalhos de teclado ──────────────────────────────────────────
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') {
+    if (!document.getElementById('modal-login').classList.contains('hidden')) return;
     fecharModalAdd();
     fecharModalEdit();
   } else if (e.key === '/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
@@ -1287,7 +1379,7 @@ async function syncSalvar() {
   syncBusy(true);
   toast('⏳ Salvando no Google...');
   try {
-    const res = await fetch('/api/sincronizar-sheets');
+    const res = await fetchProtegido('/api/sincronizar-sheets');
     const d = await res.json();
     if (res.ok) toast(`✅ Salvo! ${d.mensagem}`);
     else toast('❌ Erro: ' + (d.detail || 'Falha ao salvar'));
@@ -1303,7 +1395,7 @@ async function syncCarregar() {
   syncBusy(true);
   toast('⏳ Carregando do Google...');
   try {
-    const res = await fetch('/api/puxar-sheets');
+    const res = await fetchProtegido('/api/puxar-sheets');
     const d = await res.json();
     if (res.ok) {
       toast(`✅ Carregado! ${d.mensagem}`);
@@ -1408,10 +1500,14 @@ function _hideSplash() {
   setTimeout(() => el.remove(), 420);
 }
 
-carregarFiltros();
-carregarSugestoes();
-buscar().finally(_hideSplash);
-carregarHeaderStats();
+// Verifica se já tem sessão ativa; se não, exibe login
+if (getApiKey()) {
+  iniciarApp();
+  buscar().finally(_hideSplash);
+} else {
+  _hideSplash();
+  exibirLogin();
+}
 </script>
 </body>
 </html>

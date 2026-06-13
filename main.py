@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
@@ -23,6 +23,14 @@ if os.path.exists(_env_path):
             os.environ.setdefault(_k.strip(), _v.strip())
 
 app = FastAPI(title="Coleção de Quadrinhos")
+
+API_KEY = os.environ.get("API_KEY", "")
+
+def verificar_chave(x_api_key: str = Header(default="")):
+    if not API_KEY:
+        raise HTTPException(status_code=500, detail="API_KEY não configurada no servidor.")
+    if x_api_key != API_KEY:
+        raise HTTPException(status_code=401, detail="Senha incorreta.")
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 XLSX_PATH = os.environ.get("XLSX_PATH", os.path.join(_BASE_DIR, "quadrinhos.xlsx"))
@@ -245,7 +253,8 @@ def obter(row_index: int):
 
 
 @app.post("/api/quadrinhos", status_code=201)
-def criar(q: Quadrinho, background: BackgroundTasks):
+def criar(q: Quadrinho, background: BackgroundTasks, x_api_key: str = Header(default="")):
+    verificar_chave(x_api_key)
     # Auto-preenche DATA_LEITURA com mês atual se marcado como lido
     dl = q.data_leitura or (date.today().strftime("%m/%Y") if q.lido else "")
     valores = [q.titulo, q.edicao or "", q.editora or "", q.categoria or "",
@@ -261,7 +270,8 @@ def criar(q: Quadrinho, background: BackgroundTasks):
 
 
 @app.put("/api/quadrinhos/{row_index}")
-def atualizar(row_index: int, q: Quadrinho, background: BackgroundTasks):
+def atualizar(row_index: int, q: Quadrinho, background: BackgroundTasks, x_api_key: str = Header(default="")):
+    verificar_chave(x_api_key)
     # Auto-preenche DATA_LEITURA com mês atual ao marcar como lido (se ainda não tiver)
     dl = q.data_leitura or ""
     if q.lido and not dl:
@@ -284,7 +294,8 @@ def atualizar(row_index: int, q: Quadrinho, background: BackgroundTasks):
 
 
 @app.delete("/api/quadrinhos/{row_index}")
-def deletar(row_index: int, background: BackgroundTasks):
+def deletar(row_index: int, background: BackgroundTasks, x_api_key: str = Header(default="")):
+    verificar_chave(x_api_key)
     with _lock:
         wb = load_wb(); ws = get_ws(wb)
         if row_index < 2 or row_index > ws.max_row:
@@ -292,6 +303,12 @@ def deletar(row_index: int, background: BackgroundTasks):
         ws.delete_rows(row_index)
         save_wb(wb)
     background.add_task(_sync_to_sheets, "delete", row_index, None)
+    return {"ok": True}
+
+
+@app.get("/api/verificar")
+def verificar(x_api_key: str = Header(default="")):
+    verificar_chave(x_api_key)
     return {"ok": True}
 
 
@@ -585,7 +602,8 @@ def _pull_from_sheets():
 
 
 @app.get("/api/sincronizar-sheets")
-def sincronizar_sheets():
+def sincronizar_sheets(x_api_key: str = Header(default="")):
+    verificar_chave(x_api_key)
     """Envia TODOS os dados do Excel para o Google Sheets (Excel → Sheets)."""
     ws_gs = _gsheet_ws()
     rows = get_data_rows()
@@ -608,7 +626,8 @@ def sincronizar_sheets():
 
 
 @app.get("/api/puxar-sheets")
-def puxar_sheets():
+def puxar_sheets(x_api_key: str = Header(default="")):
+    verificar_chave(x_api_key)
     """Baixa TODOS os dados do Google Sheets para o app (Sheets → Excel)."""
     try:
         n = _pull_from_sheets()
