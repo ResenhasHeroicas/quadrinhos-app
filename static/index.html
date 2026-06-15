@@ -236,6 +236,11 @@
     .wz-yes{background:linear-gradient(135deg,#34d399,#059669);color:#fff;box-shadow:0 6px 18px -8px rgba(5,150,105,.6);transition:.15s;}
     .wz-no{background:linear-gradient(135deg,#fb7185,#e11d48);color:#fff;box-shadow:0 6px 18px -8px rgba(225,29,72,.6);transition:.15s;}
     .wz-yes:hover,.wz-no:hover{filter:brightness(1.07);}
+    /* Tela de login */
+    .login-card{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);border-radius:24px;backdrop-filter:blur(14px);box-shadow:0 24px 60px -20px rgba(0,0,0,.7);animation:modalIn .25s ease both;}
+    .login-input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#e8eaf2;outline:none;transition:.15s;}
+    .login-input::placeholder{color:#7a7f99;}
+    .login-input:focus{border-color:rgba(129,140,248,.55);background:rgba(129,140,248,.08);}
     .wz-ghost{color:var(--text-soft);transition:.15s;}
     .wz-ghost:hover{color:var(--text);}
     body.dark .wz-ghost{color:#9398b0;}
@@ -483,23 +488,22 @@
 <datalist id="dl-editoras"></datalist>
 
 <!-- MODAL LOGIN (bloqueante) -->
-<div id="modal-login" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[100] px-4" style="backdrop-filter:blur(6px)">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xs cursor-default overflow-hidden">
-    <div class="bg-gradient-to-br from-indigo-600 to-purple-600 px-6 py-7 text-center">
-      <div class="text-5xl mb-2">📚</div>
-      <h1 class="text-white text-xl font-bold">Coleção de Quadrinhos</h1>
-      <p class="text-indigo-200 text-sm mt-1">Minha biblioteca</p>
+<div id="modal-login" class="fixed inset-0 flex items-center justify-center z-[100] px-5" style="background:#0a0b14;background-image:radial-gradient(900px 400px at 10% -5%,rgba(99,102,241,.22),transparent),radial-gradient(700px 400px at 100% 0%,rgba(168,85,247,.18),transparent);">
+  <div class="login-card w-full max-w-xs cursor-default text-center px-7 py-9">
+    <div style="position:relative;display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+      <div style="position:absolute;width:108px;height:108px;border-radius:28px;background:linear-gradient(135deg,#6366f1,#a855f7);filter:blur(26px);opacity:.5;"></div>
+      <img src="/static/icon-512.png" style="position:relative;width:84px;height:84px;" alt="Quadrinhos">
     </div>
-    <div class="p-6 space-y-4">
-      <div>
-        <label class="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Senha de acesso</label>
-        <input id="login-senha" type="password" placeholder="Digite sua senha" autocomplete="current-password"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          onkeydown="if(event.key==='Enter')tentarLogin()">
-        <p id="login-erro" class="text-red-500 text-xs mt-1.5 hidden">Senha incorreta. Tente novamente.</p>
-      </div>
-      <button onclick="tentarLogin()" class="hbtn hbtn-primary w-full h-11 text-sm font-semibold">Entrar</button>
+    <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.01em;background:linear-gradient(90deg,#ffffff,#c7d2fe);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">Coleção de Quadrinhos</h1>
+    <p class="header-eyebrow" style="margin-top:8px;">Minha biblioteca</p>
+    <div class="mt-7 text-left">
+      <label class="block text-[11px] font-semibold mb-1.5 uppercase tracking-wider" style="color:#9398b0">Senha de acesso</label>
+      <input id="login-senha" type="password" placeholder="Digite sua senha" autocomplete="current-password"
+        class="login-input w-full rounded-xl px-3.5 py-3 text-sm"
+        onkeydown="if(event.key==='Enter')tentarLogin()">
+      <p id="login-erro" class="text-xs mt-2 hidden" style="color:#fb7185">Senha incorreta. Tente novamente.</p>
     </div>
+    <button onclick="tentarLogin()" class="hbtn hbtn-primary w-full h-11 text-sm font-semibold mt-5">Entrar</button>
   </div>
 </div>
 
