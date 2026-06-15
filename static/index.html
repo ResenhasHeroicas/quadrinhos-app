@@ -300,7 +300,7 @@
       </div>
       <div class="flex flex-col items-stretch gap-2 shrink-0">
         <div class="flex gap-2">
-          <button onclick="abrirSync()" id="btn-sync" class="hbtn hbtn-ghost h-10 px-3.5 text-sm gap-1.5 disabled:opacity-60 disabled:cursor-wait" title="Sincronizar com o Google"><span class="text-base">☁️</span><span>Sincronizar</span></button>
+          <button onclick="abrirSync()" id="btn-sync" class="hbtn hbtn-ghost h-10 px-3.5 text-sm gap-1.5 disabled:opacity-60 disabled:cursor-wait" title="Sincronizar"><span>Sincronizar</span></button>
           <button onclick="logout()" class="hbtn hbtn-ghost h-10 px-3 text-sm" title="Sair">🔒</button>
         </div>
         <button onclick="abrirModalAdd()" class="hbtn hbtn-primary w-full h-10 px-3.5 text-sm gap-1.5"><span class="text-lg leading-none">+</span><span>Adicionar</span></button>
@@ -511,16 +511,16 @@
 <div id="modal-sync" onclick="if(event.target===this)fecharSync()" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden px-4 cursor-pointer">
   <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm modal-box cursor-default">
     <div class="p-6">
-      <h3 class="text-base font-bold text-gray-800 mb-1">Sincronizar com o Google</h3>
+      <h3 class="text-base font-bold text-gray-800 mb-1">Sincronizar</h3>
       <p class="text-sm text-gray-400 mb-5">O que você deseja fazer?</p>
       <div class="flex flex-col gap-3">
         <button id="sync-salvar" onclick="syncSalvar()"
           class="w-full py-3 rounded-xl font-semibold text-white text-sm transition flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:opacity-90 disabled:opacity-60 disabled:cursor-wait">
-          <span class="text-base">☁️</span> Salvar dados no Google
+          Salvar dados
         </button>
         <button id="sync-carregar" onclick="syncCarregar()"
           class="w-full py-3 rounded-xl font-semibold text-sm transition flex items-center justify-center gap-2 hbtn-ghost disabled:opacity-60 disabled:cursor-wait">
-          <span class="text-base">🔄</span> Carregar dados do Google
+          Carregar dados
         </button>
         <button onclick="fecharSync()" class="w-full py-2.5 text-sm font-medium text-gray-400 hover:text-gray-600 transition">Cancelar</button>
       </div>
@@ -753,10 +753,10 @@ async function tentarLogin() {
     document.getElementById('modal-login').classList.add('hidden');
     document.getElementById('login-senha').value = '';
     iniciarApp();
-    toast('⏳ Carregando dados do Google Sheets...');
+    toast('Carregando dados...');
     fetch('/api/puxar-sheets', { headers: { 'X-API-Key': senha } })
       .then(r => r.json())
-      .then(d => { toast(`✅ ${d.mensagem}`); buscar(); carregarHeaderStats(); carregarFiltros(); })
+      .then(d => { toast('Dados carregados'); buscar(); carregarHeaderStats(); carregarFiltros(); })
       .catch(() => { buscar(); carregarHeaderStats(); carregarFiltros(); });
   } else {
     erroEl.classList.remove('hidden');
@@ -1274,7 +1274,7 @@ async function salvar(e) {
   fecharModalEdit();
   buscar();
   carregarHeaderStats();
-  toast('💾 Alterações salvas');
+  toast('Alterações salvas');
 }
 
 async function toggleLido(id, lidoAtual) {
@@ -1283,7 +1283,7 @@ async function toggleLido(id, lidoAtual) {
   await fetchProtegido(`/api/quadrinhos/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(item) });
   buscar();
   carregarHeaderStats();
-  toast(item.lido ? '✅ Marcado como lido' : '📖 Marcado como não lido');
+  toast(item.lido ? 'Marcado como lido' : 'Marcado como não lido');
 }
 
 // ─── Edições faltantes numa série ────────────────────────────────
@@ -1335,7 +1335,7 @@ async function deletarDoModal() {
   fecharModalEdit();
   buscar();
   carregarHeaderStats();
-  toast('🗑 Quadrinho removido');
+  toast('Quadrinho removido');
 }
 
 // ─── Sugestão de leitura ─────────────────────────────────────────
@@ -1383,14 +1383,14 @@ function syncBusy(estado) {
 
 async function syncSalvar() {
   syncBusy(true);
-  toast('⏳ Salvando no Google...');
+  toast('Salvando dados...');
   try {
     const res = await fetchProtegido('/api/sincronizar-sheets');
     const d = await res.json();
-    if (res.ok) toast(`✅ Salvo! ${d.mensagem}`);
-    else toast('❌ Erro: ' + (d.detail || 'Falha ao salvar'));
+    if (res.ok) toast('Dados salvos');
+    else toast('Erro ao salvar');
   } catch (e) {
-    toast('❌ Erro ao conectar com o servidor');
+    toast('Erro ao conectar com o servidor');
   } finally {
     syncBusy(false);
     fecharSync();
@@ -1399,20 +1399,20 @@ async function syncSalvar() {
 
 async function syncCarregar() {
   syncBusy(true);
-  toast('⏳ Carregando do Google...');
+  toast('Carregando dados...');
   try {
     const res = await fetchProtegido('/api/puxar-sheets');
     const d = await res.json();
     if (res.ok) {
-      toast(`✅ Carregado! ${d.mensagem}`);
+      toast('Dados carregados');
       carregarFiltros();
       buscar();
       carregarHeaderStats();
     } else {
-      toast('❌ Erro: ' + (d.detail || 'Falha ao carregar'));
+      toast('Erro ao carregar');
     }
   } catch (e) {
-    toast('❌ Erro ao conectar com o servidor');
+    toast('Erro ao conectar com o servidor');
   } finally {
     syncBusy(false);
     fecharSync();
