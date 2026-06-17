@@ -1269,7 +1269,18 @@ async function lerCodigoBarras(file) {
   div.id = tmpId;
   div.style.display = 'none';
   document.body.appendChild(div);
-  const scanner = new Html5Qrcode(tmpId);
+  // Restringe aos formatos de código de barras de livros (EAN-13/8, UPC, Code128)
+  let formats;
+  try {
+    formats = [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.CODE_128,
+    ];
+  } catch { formats = undefined; }
+  const scanner = new Html5Qrcode(tmpId, formats ? { formatsToSupport: formats, verbose: false } : undefined);
   try {
     const result = await scanner.scanFile(file, false);
     return result || null;
