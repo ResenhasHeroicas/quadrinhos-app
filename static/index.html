@@ -15,10 +15,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="shortcut icon" href="/static/favicon.ico">
-  <script type="module">
-    import { scanImageData } from 'https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.9.15/dist/index.js';
-    window._zbarScan = scanImageData;
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1266,23 +1263,21 @@ async function processarImagemISBN(input) {
 }
 
 async function lerCodigoBarras(file) {
-  // Aguarda zbar-wasm carregar (módulo ES carregado assincronamente)
-  for (let i = 0; i < 20; i++) {
-    if (window._zbarScan) break;
-    await new Promise(r => setTimeout(r, 150));
-  }
-  if (!window._zbarScan) throw new Error('Biblioteca de leitura não carregou. Recarregue a página.');
-
-  const img = await createImageBitmap(file);
-  const canvas = document.createElement('canvas');
-  canvas.width = img.width;
-  canvas.height = img.height;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0);
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const results = await window._zbarScan(imageData);
-  if (results && results.length > 0) return results[0].decode();
-  return null;
+  if (typeof Quagga === 'undefined') throw new Error('Biblioteca não carregou. Recarregue a página.');
+  const url = URL.createObjectURL(file);
+  return new Promise((resolve, reject) => {
+    Quagga.decodeSingle({
+      src: url,
+      numOfWorkers: 0,
+      locate: true,
+      inputStream: { size: 1920 },
+      decoder: { readers: ['ean_reader', 'ean_8_reader', 'code_128_reader'] }
+    }, (result) => {
+      URL.revokeObjectURL(url);
+      if (result && result.codeResult) resolve(result.codeResult.code);
+      else resolve(null);
+    });
+  });
 }
 
 async function buscarLivroPorISBN(isbn) {
