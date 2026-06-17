@@ -914,14 +914,22 @@ function renderLista(data) {
 function irPagina(p) { currentPage = p; buscar(); window.scrollTo(0,0); }
 
 // ─── Filtros / Sugestões ─────────────────────────────────────────
+// Remove todas as <option> exceto a primeira (placeholder "Todas...")
+function _limparSelect(sel) {
+  while (sel.options.length > 1) sel.remove(1);
+}
+
 async function carregarFiltros() {
   const res = await fetch('/api/filtros');
   const data = await res.json();
   const selCat = document.getElementById('filtro-categoria');
+  _limparSelect(selCat);
   data.categorias.forEach(c => { if(c.nome) selCat.innerHTML += `<option value="${c.nome}">${c.nome} (${c.count})</option>`; });
   const dEd = document.getElementById('d-editora');
+  _limparSelect(dEd);
   data.editoras.forEach(e => { if(e.nome) dEd.innerHTML += `<option value="${e.nome}">${e.nome}</option>`; });
   const dCat = document.getElementById('d-categoria');
+  _limparSelect(dCat);
   data.categorias.forEach(c => { if(c.nome) dCat.innerHTML += `<option value="${c.nome}">${c.nome}</option>`; });
 }
 
@@ -929,8 +937,10 @@ async function carregarSugestoes() {
   const res = await fetch('/api/sugestoes');
   const data = await res.json();
   const dlTitulos = document.getElementById('dl-titulos');
+  dlTitulos.innerHTML = '';
   data.titulos.forEach(t => { const o = document.createElement('option'); o.value = t; dlTitulos.appendChild(o); });
   const dlEditoras = document.getElementById('dl-editoras');
+  dlEditoras.innerHTML = '';
   data.editoras.forEach(e => { const o = document.createElement('option'); o.value = e; dlEditoras.appendChild(o); });
   _editorasList = data.editoras;
 }
