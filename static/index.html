@@ -541,9 +541,22 @@
         <div id="prog5" class="h-1 flex-1 rounded-full bg-gray-200 transition-all"></div>
       </div>
 
-      <!-- Step 1: Categoria -->
+      <!-- Step 1: Título -->
       <div id="add-step1">
-        <p class="text-xs text-gray-400 mb-1">Etapa 1 de 5</p>
+        <p class="text-xs text-gray-400 mb-1">Etapa 1</p>
+        <h3 class="text-base font-bold text-gray-800 mb-3">Qual o título?</h3>
+        <input id="add-titulo" list="dl-titulos" autocomplete="off" placeholder="Título da obra *"
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-2"
+          onchange="wizardChecarTitulo()">
+        <div id="add-titulo-serie" class="hidden p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs text-indigo-700 mb-3 whitespace-pre-line"></div>
+        <button onclick="wizardAvancarTitulo()"
+          class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition">Avançar</button>
+        <button onclick="fecharModalAdd()" class="mt-3 w-full text-sm text-gray-400 hover:text-gray-600">Cancelar</button>
+      </div>
+
+      <!-- Step 2: Categoria -->
+      <div id="add-step2" class="hidden">
+        <p class="text-xs text-gray-400 mb-1">Etapa 2</p>
         <h3 class="text-base font-bold text-gray-800 mb-4">Escolha a categoria</h3>
         <div class="flex flex-col gap-3">
           <button onclick="wizardSelectCategoria('HQ')"
@@ -553,12 +566,12 @@
           <button onclick="wizardSelectCategoria('LIVRO')"
             class="cat-btn cover-livro w-full py-3 rounded-xl font-semibold text-white transition text-sm">LIVRO</button>
         </div>
-        <button onclick="fecharModalAdd()" class="mt-4 w-full text-sm text-gray-400 hover:text-gray-600">Cancelar</button>
+        <button onclick="wizardVoltarStep(1)" class="wz-ghost mt-4 text-sm">← Voltar</button>
       </div>
 
-      <!-- Step 2: Editora -->
-      <div id="add-step2" class="hidden">
-        <p class="text-xs text-gray-400 mb-1">Etapa 2 de 5</p>
+      <!-- Step 3: Editora -->
+      <div id="add-step3" class="hidden">
+        <p class="text-xs text-gray-400 mb-1">Etapa 3</p>
         <h3 class="text-base font-bold text-gray-800 mb-3">Selecione a editora</h3>
         <div id="editoras-botoes" class="flex flex-wrap gap-2 max-h-52 overflow-y-auto mb-3 p-1"></div>
         <div id="add-nova-editora" class="hidden mt-2">
@@ -567,51 +580,51 @@
           <button onclick="wizardConfirmarNovaEditora()"
             class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition">Confirmar editora</button>
         </div>
-        <button onclick="wizardVoltarStep(1)" class="wz-ghost mt-3 text-sm">← Voltar</button>
-      </div>
-
-      <!-- Step 3: Título + Edição -->
-      <div id="add-step3" class="hidden">
-        <p class="text-xs text-gray-400 mb-1">Etapa 3 de 5</p>
-        <h3 class="text-base font-bold text-gray-800 mb-3">Título e edição</h3>
-        <input id="add-titulo" list="dl-titulos" autocomplete="off" placeholder="Título da obra *"
-          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3">
-        <input id="add-edicao" placeholder="Número, 'Única' ou intervalo (ex: 1 a 12)"
-          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-1">
-        <p class="text-xs text-gray-400 mb-4">Dica: digite "1 a 12" para cadastrar várias edições de uma vez.</p>
-        <button onclick="wizardAvancarStep3()"
-          class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition">Avançar</button>
         <button onclick="wizardVoltarStep(2)" class="wz-ghost mt-3 text-sm">← Voltar</button>
       </div>
 
-      <!-- Step 4: Lido? -->
+      <!-- Step 4: Edição -->
       <div id="add-step4" class="hidden">
-        <p class="text-xs text-gray-400 mb-1">Etapa 4 de 5</p>
-        <h3 class="text-base font-bold text-gray-800 mb-4">Já foi lido?</h3>
-        <div class="flex gap-3">
-          <button onclick="wizardSetLido('SIM')"
-            class="wz-yes flex-1 py-3 rounded-xl font-semibold transition">Sim</button>
-          <button onclick="wizardSetLido('NÃO')"
-            class="wz-no flex-1 py-3 rounded-xl font-semibold transition">Não</button>
-        </div>
-        <button onclick="wizardVoltarStep(3)" class="wz-ghost mt-4 text-sm">← Voltar</button>
+        <p class="text-xs text-gray-400 mb-1">Etapa 4</p>
+        <h3 class="text-base font-bold text-gray-800 mb-3">Edição</h3>
+        <input id="add-edicao" placeholder="Número, 'Única' ou intervalo (ex: 1 a 12)"
+          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-1">
+        <p class="text-xs text-gray-400 mb-2">Dica: digite "1 a 12" para cadastrar várias edições de uma vez.</p>
+        <div id="add-edicao-serie" class="hidden p-2 bg-indigo-50 border border-indigo-200 rounded-lg text-xs text-indigo-700 mb-3 whitespace-pre-line"></div>
+        <button onclick="wizardAvancarEdicao()"
+          class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition">Avançar</button>
+        <button onclick="wizardVoltarEdicao()" class="wz-ghost mt-3 text-sm">← Voltar</button>
       </div>
 
-      <!-- Step 5: Observações + Data -->
+      <!-- Step 5: Lido (obrigatório) + Detalhes (opcional) -->
       <div id="add-step5" class="hidden">
-        <p class="text-xs text-gray-400 mb-1">Etapa 5 de 5</p>
-        <h3 class="text-base font-bold text-gray-800 mb-3">Detalhes finais</h3>
-        <label class="text-xs text-gray-500">Observações</label>
-        <input id="add-obs" placeholder="Autografado, item raro..."
-          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3 mt-1">
-        <label class="text-xs text-gray-500">Valor pago (R$)</label>
-        <input id="add-valor" inputmode="decimal" placeholder="Ex: 25,90"
-          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3 mt-1">
-        <label class="text-xs text-gray-500">Data de inclusão</label>
-        <input id="add-inclusao" type="text" placeholder="dd/mm/aaaa"
-          class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-4 mt-1">
+        <p class="text-xs text-gray-400 mb-1">Etapa 5</p>
+        <h3 class="text-base font-bold text-gray-800 mb-4">Já foi lido? <span class="text-red-400">*</span></h3>
+        <div class="flex gap-3 mb-4">
+          <button id="lido-sim" onclick="wizardSetLido('SIM')"
+            class="wz-yes flex-1 py-3 rounded-xl font-semibold transition">Sim</button>
+          <button id="lido-nao" onclick="wizardSetLido('NÃO')"
+            class="wz-no flex-1 py-3 rounded-xl font-semibold transition">Não</button>
+        </div>
+
+        <button type="button" onclick="toggleDetalhes()" id="btn-detalhes"
+          class="w-full text-left text-xs text-gray-500 hover:text-gray-700 mb-2 flex items-center gap-1">
+          <span id="det-seta">▸</span> Detalhes (opcional): observações, valor, data
+        </button>
+        <div id="add-detalhes" class="hidden">
+          <label class="text-xs text-gray-500">Observações</label>
+          <input id="add-obs" placeholder="Autografado, item raro..."
+            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3 mt-1">
+          <label class="text-xs text-gray-500">Valor pago (R$)</label>
+          <input id="add-valor" inputmode="decimal" placeholder="Ex: 25,90"
+            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3 mt-1">
+          <label class="text-xs text-gray-500">Data de inclusão</label>
+          <input id="add-inclusao" type="text" placeholder="dd/mm/aaaa"
+            class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-1 mt-1">
+        </div>
+
         <button onclick="wizardFinalizar()"
-          class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition">Salvar</button>
+          class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition mt-3">Salvar</button>
         <button onclick="wizardVoltarStep(4)" class="wz-ghost mt-3 text-sm">← Voltar</button>
       </div>
 
@@ -622,8 +635,10 @@
         </div>
         <h3 class="text-base font-bold mb-1" style="color:#10b981">Quadrinho adicionado!</h3>
         <p class="text-sm text-gray-500 mb-5" id="add-sucesso-nome"></p>
+        <button id="btn-proximo-serie" onclick="wizardProximoDaSerie()"
+          class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition mb-2 hidden">⏭ Salvar próxima da série</button>
         <button onclick="wizardReset()"
-          class="wz-primary w-full py-2 rounded-lg text-sm font-semibold transition mb-2">+ Adicionar outro</button>
+          class="wz-pill w-full py-2 rounded-lg text-sm font-semibold transition mb-2">+ Adicionar outro</button>
         <button onclick="fecharModalAdd()"
           class="wz-pill w-full py-2 rounded-lg text-sm font-semibold transition">Fechar</button>
       </div>
@@ -1066,7 +1081,7 @@ function wizardShowStep(n) {
 }
 
 function abrirModalAdd() {
-  wiz = { categoria:'', editora:'', titulo:'', edicao:'', lido:'', obs:'', inclusao: hojeFormatado() };
+  wiz = { categoria:'', editora:'', titulo:'', edicao:'', lido:'', obs:'', inclusao: hojeFormatado(), _novoTitulo:true, _serie:[] };
   document.getElementById('add-nova-editora').classList.add('hidden');
   document.getElementById('nova-editora-input').value = '';
   document.getElementById('add-titulo').value = '';
@@ -1074,12 +1089,83 @@ function abrirModalAdd() {
   document.getElementById('add-obs').value = '';
   document.getElementById('add-valor').value = '';
   document.getElementById('add-inclusao').value = hojeFormatado();
+  document.getElementById('add-titulo-serie').classList.add('hidden');
+  document.getElementById('add-detalhes').classList.add('hidden');
+  document.getElementById('det-seta').textContent = '▸';
+  _limparLido();
   wizardShowStep(1);
   document.getElementById('modal-add').classList.remove('hidden');
+  setTimeout(() => document.getElementById('add-titulo').focus(), 100);
 }
 
 function fecharModalAdd() {
   document.getElementById('modal-add').classList.add('hidden');
+}
+
+// Busca as edições já cadastradas de um título (case-insensitive)
+async function _fetchSerie(titulo) {
+  if (!titulo) return [];
+  const res = await fetch(`/api/quadrinhos?busca=${encodeURIComponent(titulo)}&per_page=500`);
+  const d = await res.json();
+  return d.items.filter(q => q.titulo.trim().toUpperCase() === titulo.trim().toUpperCase());
+}
+
+// Próximo número de edição (maior numérico + 1), ou '' se não dá pra inferir
+function _proximaEdicao(serie) {
+  const nums = serie
+    .map(q => parseInt(String(q.edicao || '').replace(/\D/g, ''), 10))
+    .filter(n => !isNaN(n));
+  if (!nums.length) return '';
+  return String(Math.max(...nums) + 1);
+}
+
+function _resumoSerie(serie) {
+  if (!serie.length) return '';
+  const lidos = serie.filter(q => q.lido).length;
+  let txt = `📚 Você já tem ${serie.length} edição(ões) · ${lidos} lida(s)`;
+  const faltantes = edicoesFaltantes(serie);
+  if (faltantes.length) txt += `\n⚠️ Faltam: ${faltantes.join(', ')}`;
+  return txt;
+}
+
+// Ao sair do campo de título: mostra info da série se já existir
+async function wizardChecarTitulo() {
+  const titulo = document.getElementById('add-titulo').value.trim();
+  const box = document.getElementById('add-titulo-serie');
+  if (!titulo) { box.classList.add('hidden'); return; }
+  const serie = await _fetchSerie(titulo);
+  wiz._serie = serie;
+  if (serie.length) {
+    const ex = serie[0];
+    box.textContent = _resumoSerie(serie) + `\n✓ Categoria e editora serão preenchidas (${ex.categoria || '—'} · ${ex.editora || '—'})`;
+    box.classList.remove('hidden');
+  } else {
+    box.classList.add('hidden');
+  }
+}
+
+async function wizardAvancarTitulo() {
+  const titulo = document.getElementById('add-titulo').value.trim();
+  if (!titulo) { alert('Digite o título da obra.'); return; }
+  wiz.titulo = titulo;
+
+  const serie = await _fetchSerie(titulo);
+  wiz._serie = serie;
+
+  if (serie.length) {
+    // Título já existe → herda categoria/editora e pula direto para a edição
+    const ex = serie[0];
+    wiz.categoria = ex.categoria || '';
+    wiz.editora = ex.editora || '';
+    wiz._novoTitulo = false;
+    _prepararStepEdicao(serie);
+    wizardShowStep(4);
+    setTimeout(() => document.getElementById('add-edicao').focus(), 100);
+  } else {
+    // Título novo → fluxo completo (categoria → editora)
+    wiz._novoTitulo = true;
+    wizardShowStep(2);
+  }
 }
 
 function wizardSelectCategoria(cat) {
@@ -1087,12 +1173,11 @@ function wizardSelectCategoria(cat) {
   // monta botões de editoras
   const box = document.getElementById('editoras-botoes');
   box.innerHTML = '';
-  const editoras = _editorasList;
-  editoras.forEach(ed => {
+  _editorasList.forEach(ed => {
     const btn = document.createElement('button');
     btn.textContent = ed;
     btn.className = 'wz-pill px-3 py-1.5 rounded-lg text-sm font-semibold transition';
-    btn.onclick = () => { wiz.editora = ed; wizardShowStep(3); setTimeout(() => document.getElementById('add-titulo').focus(), 100); };
+    btn.onclick = () => { wiz.editora = ed; _irParaEdicao(); };
     box.appendChild(btn);
   });
   const novoBtn = document.createElement('button');
@@ -1100,34 +1185,70 @@ function wizardSelectCategoria(cat) {
   novoBtn.className = 'wz-primary px-3 py-1.5 rounded-lg text-sm font-semibold transition';
   novoBtn.onclick = () => document.getElementById('add-nova-editora').classList.remove('hidden');
   box.appendChild(novoBtn);
-  wizardShowStep(2);
+  wizardShowStep(3);
 }
 
 function wizardConfirmarNovaEditora() {
   const val = document.getElementById('nova-editora-input').value.trim();
   if (!val) { alert('Digite o nome da editora.'); return; }
   wiz.editora = val;
-  wizardShowStep(3);
-  setTimeout(() => document.getElementById('add-titulo').focus(), 100);
+  _irParaEdicao();
+}
+
+function _irParaEdicao() {
+  _prepararStepEdicao(wiz._serie || []);
+  wizardShowStep(4);
+  setTimeout(() => document.getElementById('add-edicao').focus(), 100);
+}
+
+// Pré-preenche o campo de edição com a próxima da série e mostra o resumo
+function _prepararStepEdicao(serie) {
+  const box = document.getElementById('add-edicao-serie');
+  const campo = document.getElementById('add-edicao');
+  const prox = _proximaEdicao(serie);
+  if (!campo.value && prox) campo.value = prox;
+  if (serie.length) {
+    box.textContent = _resumoSerie(serie);
+    box.classList.remove('hidden');
+  } else {
+    box.classList.add('hidden');
+  }
 }
 
 function wizardVoltarStep(n) { wizardShowStep(n); }
 
-function wizardAvancarStep3() {
-  const titulo = document.getElementById('add-titulo').value.trim();
-  if (!titulo) { alert('Digite o título da obra.'); return; }
-  wiz.titulo = titulo;
+// Voltar a partir da edição: para título novo vai p/ editora (3); senão volta ao título (1)
+function wizardVoltarEdicao() { wizardShowStep(wiz._novoTitulo ? 3 : 1); }
+
+function wizardAvancarEdicao() {
   wiz.edicao = document.getElementById('add-edicao').value.trim();
-  wizardShowStep(4);
+  wizardShowStep(5);
+}
+
+function _limparLido() {
+  wiz.lido = '';
+  document.getElementById('lido-sim').classList.remove('ring-2','ring-offset-2','ring-emerald-400');
+  document.getElementById('lido-nao').classList.remove('ring-2','ring-offset-2','ring-rose-400');
 }
 
 function wizardSetLido(valor) {
   wiz.lido = valor;
-  wizardShowStep(5);
-  setTimeout(() => document.getElementById('add-obs').focus(), 100);
+  const sim = document.getElementById('lido-sim'), nao = document.getElementById('lido-nao');
+  sim.classList.remove('ring-2','ring-offset-2','ring-emerald-400');
+  nao.classList.remove('ring-2','ring-offset-2','ring-rose-400');
+  if (valor === 'SIM') sim.classList.add('ring-2','ring-offset-2','ring-emerald-400');
+  else nao.classList.add('ring-2','ring-offset-2','ring-rose-400');
+}
+
+function toggleDetalhes() {
+  const box = document.getElementById('add-detalhes');
+  const seta = document.getElementById('det-seta');
+  const escondido = box.classList.toggle('hidden');
+  seta.textContent = escondido ? '▸' : '▾';
 }
 
 async function wizardFinalizar() {
+  if (!wiz.lido) { alert('Informe se já foi lido (Sim ou Não).'); return; }
   wiz.obs = document.getElementById('add-obs').value.trim();
   wiz.valor = document.getElementById('add-valor').value.trim();
   wiz.inclusao = document.getElementById('add-inclusao').value.trim() || hojeFormatado();
@@ -1172,6 +1293,18 @@ async function wizardFinalizar() {
     ? `${wiz.titulo} — ${edicoes.length} edições adicionadas`
     : wiz.titulo + (wiz.edicao ? ` — Edição ${wiz.edicao}` : '');
   document.getElementById('add-sucesso-nome').textContent = nomeSucesso;
+
+  // Botão "próxima da série": só faz sentido quando a edição é numérica
+  const maiorNum = Math.max(...edicoes.map(e => parseInt(String(e).replace(/\D/g, ''), 10)).filter(n => !isNaN(n)), -Infinity);
+  const btnProx = document.getElementById('btn-proximo-serie');
+  if (isFinite(maiorNum)) {
+    wiz._proxNum = maiorNum + 1;
+    btnProx.textContent = `⏭ Salvar edição ${wiz._proxNum}`;
+    btnProx.classList.remove('hidden');
+  } else {
+    btnProx.classList.add('hidden');
+  }
+
   wizardShowStep(0);
   document.getElementById('add-sucesso').classList.remove('hidden');
   buscar();
@@ -1182,8 +1315,25 @@ async function wizardFinalizar() {
   }
 }
 
+// Mantém título/editora/categoria e já vai para a edição seguinte
+function wizardProximoDaSerie() {
+  const titulo = wiz.titulo, editora = wiz.editora, categoria = wiz.categoria;
+  const prox = wiz._proxNum;
+  wiz = { categoria, editora, titulo, edicao:'', lido:'', obs:'', valor:'', inclusao: hojeFormatado(), _novoTitulo:false, _serie: wiz._serie || [] };
+  document.getElementById('add-edicao').value = prox != null ? String(prox) : '';
+  document.getElementById('add-obs').value = '';
+  document.getElementById('add-valor').value = '';
+  document.getElementById('add-inclusao').value = hojeFormatado();
+  document.getElementById('add-detalhes').classList.add('hidden');
+  document.getElementById('det-seta').textContent = '▸';
+  _limparLido();
+  document.getElementById('add-edicao-serie').classList.add('hidden');
+  wizardShowStep(4);
+  setTimeout(() => document.getElementById('add-edicao').focus(), 100);
+}
+
 function wizardReset() {
-  wiz = { ...wiz, titulo:'', edicao:'', lido:'', obs:'', valor:'', inclusao: hojeFormatado() };
+  wiz = { categoria:'', editora:'', titulo:'', edicao:'', lido:'', obs:'', valor:'', inclusao: hojeFormatado(), _novoTitulo:true, _serie:[] };
   document.getElementById('add-titulo').value = '';
   document.getElementById('add-edicao').value = '';
   document.getElementById('add-obs').value = '';
@@ -1191,7 +1341,12 @@ function wizardReset() {
   document.getElementById('add-inclusao').value = hojeFormatado();
   document.getElementById('add-nova-editora').classList.add('hidden');
   document.getElementById('nova-editora-input').value = '';
+  document.getElementById('add-titulo-serie').classList.add('hidden');
+  document.getElementById('add-detalhes').classList.add('hidden');
+  document.getElementById('det-seta').textContent = '▸';
+  _limparLido();
   wizardShowStep(1);
+  setTimeout(() => document.getElementById('add-titulo').focus(), 100);
 }
 
 // ─── Modal Editar ────────────────────────────────────────────────
@@ -1230,20 +1385,27 @@ async function abrirModalEdit(dados) {
   setTimeout(() => document.getElementById('f-titulo').focus(), 100);
 }
 
-function novaEdicaoDoModal() {
-  const titulo = document.getElementById('f-titulo').value;
+async function novaEdicaoDoModal() {
+  const titulo = document.getElementById('f-titulo').value.trim();
   const editora = document.getElementById('f-editora').value;
   const categoria = document.getElementById('f-categoria').value;
   fecharModalEdit();
-  // Abre wizard com título, editora e categoria pré-preenchidos
-  wiz = { categoria, editora, titulo, edicao: '', lido: '', obs: '', inclusao: hojeFormatado() };
+  // Abre wizard já na etapa de edição, com a próxima da série sugerida
+  wiz = { categoria, editora, titulo, edicao: '', lido: '', obs: '', valor:'', inclusao: hojeFormatado(), _novoTitulo:false, _serie:[] };
   document.getElementById('add-titulo').value = titulo;
   document.getElementById('add-edicao').value = '';
   document.getElementById('add-obs').value = '';
+  document.getElementById('add-valor').value = '';
   document.getElementById('add-inclusao').value = hojeFormatado();
   document.getElementById('add-nova-editora').classList.add('hidden');
-  wizardShowStep(3);
+  document.getElementById('add-detalhes').classList.add('hidden');
+  document.getElementById('det-seta').textContent = '▸';
+  _limparLido();
   document.getElementById('modal-add').classList.remove('hidden');
+  const serie = await _fetchSerie(titulo);
+  wiz._serie = serie;
+  _prepararStepEdicao(serie);
+  wizardShowStep(4);
   setTimeout(() => document.getElementById('add-edicao').focus(), 100);
 }
 
