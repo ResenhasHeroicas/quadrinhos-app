@@ -1355,7 +1355,10 @@ async function onISBNLido(isbn) {
     const livro = await buscarLivroPorISBN(isbn);
     loadingEl.classList.add('hidden');
     if (!livro) {
-      erroEl.textContent = `ISBN ${isbn} lido, mas não encontrado no Google Books. Preencha manualmente.`;
+      const isPeriodico = String(isbn).startsWith('977');
+      erroEl.textContent = isPeriodico
+        ? `Código ${isbn} é de revista/periódico (não catalogado). Preencha manualmente.`
+        : `Código ${isbn} não encontrado nas bases de livros. Preencha manualmente.`;
       erroEl.classList.remove('hidden');
       return;
     }
@@ -1388,7 +1391,10 @@ async function processarImagemISBN(input) {
     const livro = await buscarLivroPorISBN(isbn);
     loadingEl.classList.add('hidden');
     if (!livro) {
-      erroEl.textContent = `ISBN ${isbn} lido, mas não encontrado no Google Books. Preencha manualmente.`;
+      const isPeriodico = String(isbn).startsWith('977');
+      erroEl.textContent = isPeriodico
+        ? `Código ${isbn} é de revista/periódico (não catalogado). Preencha manualmente.`
+        : `Código ${isbn} não encontrado nas bases de livros. Preencha manualmente.`;
       erroEl.classList.remove('hidden');
       return;
     }
@@ -1421,19 +1427,30 @@ async function lerCodigoBarras(file) {
 }
 
 async function buscarLivroPorISBN(isbn) {
+  const limpo = String(isbn).replace(/[^0-9Xx]/g, '');
+  // 1) Google Books
   try {
-    const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
+    const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${limpo}`);
     const d = await r.json();
-    if (!d.items || !d.items.length) return null;
-    const info = d.items[0].volumeInfo;
-    return {
-      titulo: info.title || '',
-      editora: info.publisher || '',
-      subtitulo: info.subtitle || '',
-    };
-  } catch {
-    return null;
-  }
+    if (d.items && d.items.length) {
+      const info = d.items[0].volumeInfo;
+      return { titulo: info.title || '', editora: info.publisher || '', subtitulo: info.subtitle || '' };
+    }
+  } catch {}
+  // 2) OpenLibrary
+  try {
+    const r = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${limpo}&format=json&jscmd=data`);
+    const d = await r.json();
+    const obj = d[`ISBN:${limpo}`];
+    if (obj) {
+      return {
+        titulo: obj.title || '',
+        editora: (obj.publishers && obj.publishers[0] && obj.publishers[0].name) || '',
+        subtitulo: obj.subtitle || '',
+      };
+    }
+  } catch {}
+  return null;
 }
 
 function preencherWizardComISBN(livro) {
