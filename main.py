@@ -344,64 +344,6 @@ def sugestoes():
     return {"titulos": titulos, "editoras": editoras, "categorias": categorias}
 
 
-def _http_json(url, timeout=6, headers=None):
-    """GET simples que devolve JSON (ou None em qualquer falha)."""
-    import urllib.request
-    import json as _json
-    try:
-        req = urllib.request.Request(url, headers=headers or {"User-Agent": "quadrinhos-app/1.0"})
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return _json.loads(resp.read().decode("utf-8"))
-    except Exception:
-        return None
-
-
-@app.get("/api/isbn/{isbn}")
-def buscar_isbn(isbn: str):
-    """Consulta dados de um livro por ISBN em fontes gratuitas.
-    Ordem: Mercado Editorial (base brasileira/CBL) -> Google Books -> OpenLibrary."""
-    limpo = "".join(c for c in isbn if c.isdigit() or c in "Xx")
-    if not limpo:
-        raise HTTPException(status_code=400, detail="ISBN inválido")
-
-    # 1) Mercado Editorial (Agência Brasileira do ISBN / dados CBL)
-    d = _http_json(f"https://api.mercadoeditorial.org/api/v1.2/book?isbn={limpo}")
-    if d and d.get("books"):
-        b = d["books"][0]
-        titulo = (b.get("title") or "").strip()
-        if titulo:
-            editora = ""
-            pub = b.get("publishers") or b.get("publisher")
-            if isinstance(pub, list) and pub:
-                editora = (pub[0].get("name") if isinstance(pub[0], dict) else str(pub[0])) or ""
-            elif isinstance(pub, dict):
-                editora = pub.get("name", "")
-            elif isinstance(pub, str):
-                editora = pub
-            return {"fonte": "mercadoeditorial", "titulo": titulo,
-                    "editora": editora.strip(), "subtitulo": (b.get("subtitle") or "").strip()}
-
-    # 2) Google Books
-    d = _http_json(f"https://www.googleapis.com/books/v1/volumes?q=isbn:{limpo}")
-    if d and d.get("items"):
-        info = d["items"][0].get("volumeInfo", {})
-        if info.get("title"):
-            return {"fonte": "googlebooks", "titulo": info.get("title", ""),
-                    "editora": info.get("publisher", ""), "subtitulo": info.get("subtitle", "")}
-
-    # 3) OpenLibrary
-    d = _http_json(f"https://openlibrary.org/api/books?bibkeys=ISBN:{limpo}&format=json&jscmd=data")
-    if d and d.get(f"ISBN:{limpo}"):
-        obj = d[f"ISBN:{limpo}"]
-        pubs = obj.get("publishers") or []
-        editora = pubs[0].get("name", "") if pubs and isinstance(pubs[0], dict) else ""
-        if obj.get("title"):
-            return {"fonte": "openlibrary", "titulo": obj.get("title", ""),
-                    "editora": editora, "subtitulo": obj.get("subtitle", "")}
-
-    return {"fonte": None, "titulo": "", "editora": "", "subtitulo": ""}
-
-
 def _inc_to_str(v) -> str:
     """Normaliza valor de célula inclusao para 'dd/mm/yyyy', seja datetime ou string."""
     if v is None:
