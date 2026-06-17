@@ -556,12 +556,14 @@
         </div>
         <div class="mt-4 border-t pt-4">
           <p class="text-xs text-gray-400 mb-2 text-center">ou escaneie o código de barras</p>
-          <button onclick="document.getElementById('isbn-file-input').click()"
+          <button onclick="iniciarScanAoVivo()"
             class="w-full py-2.5 rounded-xl font-semibold text-sm border-2 border-dashed border-indigo-300 text-indigo-500 hover:bg-indigo-50 transition flex items-center justify-center gap-2">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h2v10H7zM11 7h1v10h-1zM14 7h3v10h-3z"/></svg>
             Escanear ISBN
           </button>
-          <input id="isbn-file-input" type="file" accept="image/*" capture="environment" class="hidden" onchange="processarImagemISBN(this)">
+          <button onclick="document.getElementById('isbn-file-input').click()"
+            class="mt-2 w-full text-xs text-gray-400 hover:text-gray-600 underline">ou enviar uma foto</button>
+          <input id="isbn-file-input" type="file" accept="image/*" class="hidden" onchange="processarImagemISBN(this)">
           <div id="isbn-loading" class="hidden mt-3 text-center text-xs text-gray-400 flex items-center justify-center gap-2">
             <svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
             Lendo código de barras...
@@ -644,6 +646,17 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- SCANNER AO VIVO (ISBN) -->
+<div id="scan-overlay" class="fixed inset-0 bg-black flex flex-col items-center justify-center z-[60] hidden">
+  <div class="absolute top-0 left-0 right-0 p-4 flex items-center justify-between z-10">
+    <span class="text-white text-sm font-semibold">Aponte para o código de barras</span>
+    <button onclick="pararScanAoVivo()" class="text-white text-2xl leading-none px-2">×</button>
+  </div>
+  <div id="scan-reader" class="w-full max-w-md"></div>
+  <p class="text-white/70 text-xs mt-4 px-6 text-center">Mantenha o código de barras dentro da área, nítido e bem iluminado.</p>
+  <div id="scan-erro" class="hidden text-red-400 text-xs mt-3 px-6 text-center"></div>
 </div>
 
 <!-- MODAL EDITAR -->
@@ -1229,6 +1242,85 @@ function wizardReset() {
 }
 
 // ─── ISBN Scan ───────────────────────────────────────────────────
+let _scanAtivo = null;
+
+function _formatosBarcode() {
+  try {
+    return [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.CODE_128,
+    ];
+  } catch { return undefined; }
+}
+
+async function iniciarScanAoVivo() {
+  if (typeof Html5Qrcode === 'undefined') {
+    alert('Biblioteca de leitura não carregou. Recarregue a página.');
+    return;
+  }
+  document.getElementById('scan-erro').classList.add('hidden');
+  document.getElementById('scan-overlay').classList.remove('hidden');
+
+  const formats = _formatosBarcode();
+  const scanner = new Html5Qrcode('scan-reader', formats ? { formatsToSupport: formats, verbose: false } : undefined);
+  _scanAtivo = scanner;
+
+  const config = {
+    fps: 10,
+    qrbox: { width: 280, height: 160 },
+    aspectRatio: 1.0,
+  };
+
+  try {
+    await scanner.start(
+      { facingMode: 'environment' },
+      config,
+      async (texto) => {
+        // Travou em um código — para o scan e processa
+        await pararScanAoVivo();
+        await onISBNLido(texto);
+      },
+      () => {} // ignora falhas de frame
+    );
+  } catch (e) {
+    document.getElementById('scan-erro').textContent = 'Não foi possível abrir a câmera: ' + (e && e.message ? e.message : e);
+    document.getElementById('scan-erro').classList.remove('hidden');
+  }
+}
+
+async function pararScanAoVivo() {
+  if (_scanAtivo) {
+    try { await _scanAtivo.stop(); } catch {}
+    try { await _scanAtivo.clear(); } catch {}
+    _scanAtivo = null;
+  }
+  document.getElementById('scan-overlay').classList.add('hidden');
+}
+
+async function onISBNLido(isbn) {
+  const loadingEl = document.getElementById('isbn-loading');
+  const erroEl = document.getElementById('isbn-erro');
+  loadingEl.classList.remove('hidden');
+  erroEl.classList.add('hidden');
+  try {
+    const livro = await buscarLivroPorISBN(isbn);
+    loadingEl.classList.add('hidden');
+    if (!livro) {
+      erroEl.textContent = `ISBN ${isbn} lido, mas não encontrado no Google Books. Preencha manualmente.`;
+      erroEl.classList.remove('hidden');
+      return;
+    }
+    preencherWizardComISBN(livro);
+  } catch (e) {
+    loadingEl.classList.add('hidden');
+    erroEl.textContent = 'Erro: ' + (e && e.message ? e.message : String(e));
+    erroEl.classList.remove('hidden');
+  }
+}
+
 async function processarImagemISBN(input) {
   if (!input.files || !input.files[0]) return;
   const file = input.files[0];
@@ -1269,17 +1361,7 @@ async function lerCodigoBarras(file) {
   div.id = tmpId;
   div.style.display = 'none';
   document.body.appendChild(div);
-  // Restringe aos formatos de código de barras de livros (EAN-13/8, UPC, Code128)
-  let formats;
-  try {
-    formats = [
-      Html5QrcodeSupportedFormats.EAN_13,
-      Html5QrcodeSupportedFormats.EAN_8,
-      Html5QrcodeSupportedFormats.UPC_A,
-      Html5QrcodeSupportedFormats.UPC_E,
-      Html5QrcodeSupportedFormats.CODE_128,
-    ];
-  } catch { formats = undefined; }
+  const formats = _formatosBarcode();
   const scanner = new Html5Qrcode(tmpId, formats ? { formatsToSupport: formats, verbose: false } : undefined);
   try {
     const result = await scanner.scanFile(file, false);
