@@ -1242,35 +1242,45 @@ async function processarImagemISBN(input) {
   try {
     const isbn = await lerCodigoBarras(file);
     if (!isbn) {
-      erroEl.textContent = 'Código de barras não encontrado. Tente uma foto mais nítida.';
+      erroEl.textContent = 'Código de barras não encontrado. Tente foto mais próxima, bem iluminada e na horizontal.';
       erroEl.classList.remove('hidden');
       loadingEl.classList.add('hidden');
       return;
     }
-    loadingEl.querySelector('span') && (loadingEl.querySelector('span').textContent = 'Buscando no Google Books...');
     const livro = await buscarLivroPorISBN(isbn);
     loadingEl.classList.add('hidden');
     if (!livro) {
-      erroEl.textContent = `ISBN ${isbn} não encontrado. Preencha manualmente.`;
+      erroEl.textContent = `ISBN ${isbn} lido, mas não encontrado no Google Books. Preencha manualmente.`;
       erroEl.classList.remove('hidden');
       return;
     }
     preencherWizardComISBN(livro);
   } catch (e) {
     loadingEl.classList.add('hidden');
-    erroEl.textContent = 'Erro ao processar imagem. Tente novamente.';
+    erroEl.textContent = 'Erro: ' + (e && e.message ? e.message : String(e));
     erroEl.classList.remove('hidden');
   }
 }
 
 async function lerCodigoBarras(file) {
+  // Tenta API nativa do browser primeiro (Chrome Android suporta)
+  if ('BarcodeDetector' in window) {
+    try {
+      const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'itf'] });
+      const img = await createImageBitmap(file);
+      const barcodes = await detector.detect(img);
+      if (barcodes && barcodes.length > 0) return barcodes[0].rawValue;
+    } catch (e) {
+      console.warn('BarcodeDetector falhou, tentando ZXing:', e);
+    }
+  }
+
+  // Fallback: ZXing.js
   const url = URL.createObjectURL(file);
   try {
     const reader = new ZXingBrowser.BrowserMultiFormatReader();
     const result = await reader.decodeFromImageUrl(url);
     return result ? result.getText() : null;
-  } catch {
-    return null;
   } finally {
     URL.revokeObjectURL(url);
   }
