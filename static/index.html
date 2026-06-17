@@ -655,7 +655,12 @@
     <button onclick="pararScanAoVivo()" class="text-white text-2xl leading-none px-2">×</button>
   </div>
   <div id="scan-reader" class="w-full max-w-md"></div>
-  <p class="text-white/70 text-xs mt-4 px-6 text-center">Mantenha o código de barras dentro da área, nítido e bem iluminado.</p>
+  <p class="text-white/70 text-xs mt-4 px-6 text-center">Mantenha o celular a ~20cm e use o zoom abaixo em vez de aproximar (evita desfoque).</p>
+  <div id="scan-zoom-wrap" class="hidden w-full max-w-xs mt-4 px-6 flex items-center gap-3">
+    <span class="text-white text-xs">🔍</span>
+    <input id="scan-zoom" type="range" min="1" max="5" step="0.1" value="1" class="flex-1" oninput="aplicarZoomScan(this.value)">
+    <span id="scan-zoom-val" class="text-white text-xs w-8 text-right">1x</span>
+  </div>
   <div id="scan-erro" class="hidden text-red-400 text-xs mt-3 px-6 text-center"></div>
 </div>
 
@@ -1272,6 +1277,12 @@ async function iniciarScanAoVivo() {
     fps: 10,
     qrbox: { width: 280, height: 160 },
     aspectRatio: 1.0,
+    videoConstraints: {
+      facingMode: 'environment',
+      width: { ideal: 1920 },
+      height: { ideal: 1080 },
+      focusMode: 'continuous',
+    },
   };
 
   try {
@@ -1285,9 +1296,44 @@ async function iniciarScanAoVivo() {
       },
       () => {} // ignora falhas de frame
     );
+    configurarZoomScan();
   } catch (e) {
     document.getElementById('scan-erro').textContent = 'Não foi possível abrir a câmera: ' + (e && e.message ? e.message : e);
     document.getElementById('scan-erro').classList.remove('hidden');
+  }
+}
+
+function _scanTrack() {
+  try {
+    const video = document.querySelector('#scan-reader video');
+    if (video && video.srcObject) return video.srcObject.getVideoTracks()[0];
+  } catch {}
+  return null;
+}
+
+function configurarZoomScan() {
+  const track = _scanTrack();
+  const wrap = document.getElementById('scan-zoom-wrap');
+  if (!track || !track.getCapabilities) { wrap.classList.add('hidden'); return; }
+  const caps = track.getCapabilities();
+  if (caps && caps.zoom && caps.zoom.max > caps.zoom.min) {
+    const slider = document.getElementById('scan-zoom');
+    slider.min = caps.zoom.min;
+    slider.max = caps.zoom.max;
+    slider.step = caps.zoom.step || 0.1;
+    slider.value = caps.zoom.min;
+    document.getElementById('scan-zoom-val').textContent = (+caps.zoom.min).toFixed(1) + 'x';
+    wrap.classList.remove('hidden');
+  } else {
+    wrap.classList.add('hidden');
+  }
+}
+
+async function aplicarZoomScan(valor) {
+  const track = _scanTrack();
+  document.getElementById('scan-zoom-val').textContent = (+valor).toFixed(1) + 'x';
+  if (track) {
+    try { await track.applyConstraints({ advanced: [{ zoom: +valor }] }); } catch {}
   }
 }
 
