@@ -17,7 +17,6 @@
   <link rel="shortcut icon" href="/static/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.1/umd/index.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ─── Paleta própria ─── */
@@ -1263,27 +1262,14 @@ async function processarImagemISBN(input) {
 }
 
 async function lerCodigoBarras(file) {
-  // Tenta API nativa do browser primeiro (Chrome Android suporta)
-  if ('BarcodeDetector' in window) {
-    try {
-      const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'itf'] });
-      const img = await createImageBitmap(file);
-      const barcodes = await detector.detect(img);
-      if (barcodes && barcodes.length > 0) return barcodes[0].rawValue;
-    } catch (e) {
-      console.warn('BarcodeDetector falhou, tentando ZXing:', e);
-    }
+  if (!('BarcodeDetector' in window)) {
+    throw new Error('Seu navegador não suporta leitura de código de barras. Use o Chrome atualizado.');
   }
-
-  // Fallback: ZXing.js
-  const url = URL.createObjectURL(file);
-  try {
-    const reader = new ZXingBrowser.BrowserMultiFormatReader();
-    const result = await reader.decodeFromImageUrl(url);
-    return result ? result.getText() : null;
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+  const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'itf'] });
+  const img = await createImageBitmap(file);
+  const barcodes = await detector.detect(img);
+  if (barcodes && barcodes.length > 0) return barcodes[0].rawValue;
+  return null;
 }
 
 async function buscarLivroPorISBN(isbn) {
