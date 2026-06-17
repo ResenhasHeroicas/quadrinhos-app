@@ -15,6 +15,10 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
   <link rel="shortcut icon" href="/static/favicon.ico">
+  <script type="module">
+    import { scanImageData } from 'https://cdn.jsdelivr.net/npm/@undecaf/zbar-wasm@0.9.15/dist/index.js';
+    window._zbarScan = scanImageData;
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1262,13 +1266,22 @@ async function processarImagemISBN(input) {
 }
 
 async function lerCodigoBarras(file) {
-  if (!('BarcodeDetector' in window)) {
-    throw new Error('Seu navegador não suporta leitura de código de barras. Use o Chrome atualizado.');
+  // Aguarda zbar-wasm carregar (módulo ES carregado assincronamente)
+  for (let i = 0; i < 20; i++) {
+    if (window._zbarScan) break;
+    await new Promise(r => setTimeout(r, 150));
   }
-  const detector = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'code_128', 'itf'] });
+  if (!window._zbarScan) throw new Error('Biblioteca de leitura não carregou. Recarregue a página.');
+
   const img = await createImageBitmap(file);
-  const barcodes = await detector.detect(img);
-  if (barcodes && barcodes.length > 0) return barcodes[0].rawValue;
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const results = await window._zbarScan(imageData);
+  if (results && results.length > 0) return results[0].decode();
   return null;
 }
 
